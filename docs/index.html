@@ -39,11 +39,15 @@
              alt="SeaSky Apartments" />
         <span class="header-logo-text">
           SeaSky
-          <span>Booking Dashboard</span>
+          <span data-i18n="header.subtitle">Booking Dashboard</span>
         </span>
       </a>
     </div>
     <div class="header-right">
+      <div class="lang-switcher" id="lang-switcher">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="bg">BG</button>
+      </div>
       <div id="header-auth" class="header-auth"></div>
     </div>
   </header>
@@ -57,26 +61,26 @@
         <li>
           <a class="nav-item active" data-page="dashboard" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            Dashboard
+            <span data-i18n="nav.dashboard">Dashboard</span>
           </a>
         </li>
         <li class="nav-admin-only">
           <a class="nav-item" data-page="users" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Users
+            <span data-i18n="nav.users">Users</span>
           </a>
         </li>
         <li class="nav-admin-only">
           <a class="nav-item" data-page="logs" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Logs
+            <span data-i18n="nav.logs">Logs</span>
           </a>
         </li>
         <li class="nav-divider"></li>
         <li>
           <a class="nav-item" data-page="settings" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            Settings
+            <span data-i18n="nav.settings">Settings</span>
           </a>
         </li>
       </ul>
@@ -88,11 +92,11 @@
       <!-- ── Dashboard page ─────────────────────────────────────────────── -->
       <div id="page-dashboard" class="page active">
         <div class="page-header">
-          <h1 class="page-title">Dashboard</h1>
+          <h1 class="page-title" data-i18n="nav.dashboard">Dashboard</h1>
           <div class="page-actions">
             <div id="legend" class="legend"></div>
-            <span id="last-sync-label" class="sync-label">Last sync: —</span>
-            <button id="sync-btn" class="btn-sync">&#8635; Sync now</button>
+            <span id="last-sync-label" class="sync-label">—</span>
+            <button id="sync-btn" class="btn-sync">&#8635; <span data-i18n="btn.syncNow">Sync now</span></button>
           </div>
         </div>
         <div class="stats-row" id="stats-row"></div>
@@ -104,25 +108,25 @@
       <!-- ── Users page ─────────────────────────────────────────────────── -->
       <div id="page-users" class="page">
         <div class="page-header">
-          <h1 class="page-title">Users</h1>
+          <h1 class="page-title" data-i18n="nav.users">Users</h1>
         </div>
         <div class="card" id="users-content">
-          <p class="loading-text">Loading…</p>
+          <p class="loading-text" data-i18n="status.loading">Loading…</p>
         </div>
       </div>
 
       <!-- ── Settings page ─────────────────────────────────────────────── -->
       <div id="page-settings" class="page">
         <div class="page-header">
-          <h1 class="page-title">Settings</h1>
+          <h1 class="page-title" data-i18n="nav.settings">Settings</h1>
         </div>
         <div class="settings-section">
-          <h2 class="settings-heading">Appearance</h2>
+          <h2 class="settings-heading" data-i18n="settings.appearance">Appearance</h2>
           <div class="settings-card">
             <div class="settings-row">
               <div class="settings-label">
-                <span class="settings-label-title">Theme</span>
-                <span class="settings-label-desc">Choose how the dashboard looks</span>
+                <span class="settings-label-title" data-i18n="settings.theme">Theme</span>
+                <span class="settings-label-desc" data-i18n="settings.themeDesc">Choose how the dashboard looks</span>
               </div>
               <div class="theme-options" id="theme-options">
                 <button class="theme-btn" data-theme="dark">
@@ -131,7 +135,7 @@
                     <span class="tp-sidebar"></span>
                     <span class="tp-body"></span>
                   </span>
-                  <span class="theme-btn-label">Dark</span>
+                  <span class="theme-btn-label" data-i18n="settings.dark">Dark</span>
                 </button>
                 <button class="theme-btn" data-theme="light">
                   <span class="theme-preview theme-preview-light">
@@ -139,19 +143,19 @@
                     <span class="tp-sidebar"></span>
                     <span class="tp-body"></span>
                   </span>
-                  <span class="theme-btn-label">Light</span>
+                  <span class="theme-btn-label" data-i18n="settings.light">Light</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <h2 class="settings-heading" style="margin-top:24px">Notifications</h2>
+        <h2 class="settings-heading" style="margin-top:24px" data-i18n="settings.notifications">Notifications</h2>
         <div class="settings-card">
           <div class="settings-row">
             <div class="settings-label">
-              <span class="settings-label-title">Push notifications</span>
-              <span class="settings-label-desc">Get notified when new bookings are detected</span>
+              <span class="settings-label-title" data-i18n="settings.push">Push notifications</span>
+              <span class="settings-label-desc" data-i18n="settings.pushDesc">Get notified when new bookings are detected</span>
             </div>
             <div>
               <label class="toggle-switch">
@@ -167,13 +171,13 @@
       <!-- ── Logs page ──────────────────────────────────────────────────── -->
       <div id="page-logs" class="page">
         <div class="page-header">
-          <h1 class="page-title">Activity Logs</h1>
+          <h1 class="page-title" data-i18n="nav.logs">Activity Logs</h1>
           <div class="page-actions">
-            <button class="btn-sync" id="logs-refresh">&#8635; Refresh</button>
+            <button class="btn-sync" id="logs-refresh">&#8635; <span data-i18n="btn.refresh">Refresh</span></button>
           </div>
         </div>
         <div class="card" id="logs-content">
-          <p class="loading-text">Loading…</p>
+          <p class="loading-text" data-i18n="status.loading">Loading…</p>
         </div>
       </div>
 

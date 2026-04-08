@@ -4,6 +4,155 @@ let calendar;
 let feedMeta    = [];
 let currentUser = null;
 
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+
+const TRANSLATIONS = {
+  en: {
+    'header.subtitle':       'Booking Dashboard',
+    'nav.dashboard':         'Dashboard',
+    'nav.users':             'Users',
+    'nav.logs':              'Logs',
+    'nav.settings':          'Settings',
+    'btn.syncNow':           'Sync now',
+    'btn.refresh':           'Refresh',
+    'status.loading':        'Loading…',
+    'status.denied':         'Access denied.',
+    'settings.appearance':   'Appearance',
+    'settings.theme':        'Theme',
+    'settings.themeDesc':    'Choose how the dashboard looks',
+    'settings.dark':         'Dark',
+    'settings.light':        'Light',
+    'settings.notifications':'Notifications',
+    'settings.push':         'Push notifications',
+    'settings.pushDesc':     'Get notified when new bookings are detected',
+    'stats.total':           'Total Bookings',
+    'stats.acrossAll':       'across all sources',
+    'stats.synced':          'Synced',
+    'stats.error':           'Error:',
+    'stats.lastSync':        'Last sync:',
+    'auth.signIn':           'Sign in with Google',
+    'auth.signOut':          'Sign out',
+    'users.noUsers':         'No users yet.',
+    'users.colName':         'Name',
+    'users.colEmail':        'Email',
+    'users.colRole':         'Role',
+    'users.colLastLogin':    'Last login',
+    'users.colJoined':       'Joined',
+    'users.you':             'you',
+    'users.remove':          '✕ Remove',
+    'users.confirmRemove':   'Remove this user?',
+    'logs.noActivity':       'No activity yet.',
+    'logs.colTime':          'Time',
+    'logs.colType':          'Type',
+    'logs.colUser':          'User',
+    'logs.colAction':        'Action',
+    'logs.colDetails':       'Details',
+    'logs.title':            'Activity Logs',
+    'modal.checkIn':         'Check-in',
+    'modal.checkOut':        'Check-out',
+    'modal.nights':          'Nights',
+    'modal.notes':           'Notes',
+    'modal.save':            'Save changes',
+    'modal.saving':          'Saving…',
+    'modal.saved':           'Saved!',
+    'modal.saveError':       'Error saving.',
+    'push.notSupported':     'Not supported in this browser',
+    'push.enabled':          'Enabled',
+    'push.disabled':         'Disabled',
+    'push.permDenied':       'Permission denied',
+    'cal.locale':            'en',
+  },
+  bg: {
+    'header.subtitle':       'Система за резервации',
+    'nav.dashboard':         'Табло',
+    'nav.users':             'Потребители',
+    'nav.logs':              'Журнал',
+    'nav.settings':          'Настройки',
+    'btn.syncNow':           'Синхронизирай',
+    'btn.refresh':           'Обнови',
+    'status.loading':        'Зареждане…',
+    'status.denied':         'Достъпът е отказан.',
+    'settings.appearance':   'Изглед',
+    'settings.theme':        'Тема',
+    'settings.themeDesc':    'Изберете как изглежда таблото',
+    'settings.dark':         'Тъмна',
+    'settings.light':        'Светла',
+    'settings.notifications':'Известия',
+    'settings.push':         'Push известия',
+    'settings.pushDesc':     'Известие при нова резервация',
+    'stats.total':           'Общо резервации',
+    'stats.acrossAll':       'от всички източници',
+    'stats.synced':          'Синхронизирано',
+    'stats.error':           'Грешка:',
+    'stats.lastSync':        'Последна синхронизация:',
+    'auth.signIn':           'Вход с Google',
+    'auth.signOut':          'Изход',
+    'users.noUsers':         'Няма потребители.',
+    'users.colName':         'Име',
+    'users.colEmail':        'Имейл',
+    'users.colRole':         'Роля',
+    'users.colLastLogin':    'Последен вход',
+    'users.colJoined':       'Регистриран',
+    'users.you':             'вие',
+    'users.remove':          '✕ Премахни',
+    'users.confirmRemove':   'Премахване на потребителя?',
+    'logs.noActivity':       'Няма дейност.',
+    'logs.colTime':          'Час',
+    'logs.colType':          'Тип',
+    'logs.colUser':          'Потребител',
+    'logs.colAction':        'Действие',
+    'logs.colDetails':       'Детайли',
+    'logs.title':            'Журнал на дейността',
+    'modal.checkIn':         'Настаняване',
+    'modal.checkOut':        'Напускане',
+    'modal.nights':          'Нощувки',
+    'modal.notes':           'Бележки',
+    'modal.save':            'Запази промените',
+    'modal.saving':          'Запазване…',
+    'modal.saved':           'Запазено!',
+    'modal.saveError':       'Грешка при запазване.',
+    'push.notSupported':     'Не се поддържа в браузъра',
+    'push.enabled':          'Активирано',
+    'push.disabled':         'Деактивирано',
+    'push.permDenied':       'Разрешението е отказано',
+    'cal.locale':            'bg',
+  },
+};
+
+let currentLang = localStorage.getItem('lang') || 'en';
+
+function t(key) {
+  return TRANSLATIONS[currentLang]?.[key] ?? TRANSLATIONS.en[key] ?? key;
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  // Update active lang button
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+  // Update html lang attribute
+  document.documentElement.lang = currentLang;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  applyTranslations();
+  // Update calendar locale if initialised
+  if (calendar) {
+    calendar.setOption('locale', t('cal.locale'));
+  }
+  // Re-render dynamic content
+  renderAuth(currentUser);
+  const statsRow = document.getElementById('stats-row');
+  if (statsRow && statsRow.children.length) {
+    loadAll();
+  }
+}
+
 // ─── WASM calendar utilities ──────────────────────────────────────────────────
 
 let wasmExports = null;
@@ -82,6 +231,10 @@ document.querySelectorAll('.nav-item').forEach(a => {
   });
 });
 
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+
 // Sidebar toggle + mobile backdrop
 const sidebarEl   = document.getElementById('sidebar');
 const backdropEl  = document.createElement('div');
@@ -120,7 +273,7 @@ function renderAuth(user) {
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
-          Sign in with Google
+          ${t('auth.signIn')}
         </button>`;
       document.getElementById('static-google-btn').addEventListener('click', () => {
         if (window.google?.accounts) {
@@ -137,7 +290,7 @@ function renderAuth(user) {
           <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
-        Sign in with Google
+        ${t('auth.signIn')}
       </a>`;
     return;
   }
@@ -147,7 +300,7 @@ function renderAuth(user) {
       <div class="user-chip">
         ${user.avatar ? `<img class="user-avatar" src="${escHtml(user.avatar)}" alt="" />` : ''}
         <span class="user-name">${escHtml(user.name)}</span>
-        <button class="btn-logout" id="static-signout">Sign out</button>
+        <button class="btn-logout" id="static-signout">${t('auth.signOut')}</button>
       </div>`;
     document.getElementById('static-signout').addEventListener('click', () => {
       localStorage.removeItem('static_user');
@@ -163,7 +316,7 @@ function renderAuth(user) {
       ${user.avatar ? `<img class="user-avatar" src="${escHtml(user.avatar)}" alt="" />` : ''}
       <span class="user-name">${escHtml(user.name)}</span>
       <span class="role-badge ${escHtml(user.role)}">${escHtml(user.role)}</span>
-      <a href="/auth/logout" class="btn-logout">Sign out</a>
+      <a href="/auth/logout" class="btn-logout">${t('auth.signOut')}</a>
     </div>`;
 }
 
@@ -226,9 +379,9 @@ function renderLegend() {
 function renderStats(statusData, events) {
   const totalCard = `
     <div class="stat-card">
-      <span class="stat-label">Total Bookings</span>
+      <span class="stat-label">${t('stats.total')}</span>
       <span class="stat-value">${events.length}</span>
-      <span class="stat-sub">across all sources</span>
+      <span class="stat-sub">${t('stats.acrossAll')}</span>
     </div>`;
 
   const feedCards = statusData.feeds.map(f => {
@@ -239,7 +392,7 @@ function renderStats(statusData, events) {
         <span class="stat-value">${f.count ?? 0}</span>
         <span class="stat-sub">
           <span class="stat-dot">${f.status === 'ok' ? '●' : '✕'}</span>
-          ${f.status === 'ok' ? 'Synced' : 'Error: ' + escHtml(f.error || 'unknown')}
+          ${f.status === 'ok' ? t('stats.synced') : t('stats.error') + ' ' + escHtml(f.error || 'unknown')}
         </span>
       </div>`;
   });
@@ -254,7 +407,7 @@ async function loadAll() {
   ]);
 
   document.getElementById('last-sync-label').textContent =
-    status.lastSync ? `Last sync: ${fmtDate(status.lastSync)}` : 'Last sync: —';
+    status.lastSync ? `${t('stats.lastSync')} ${fmtDate(status.lastSync)}` : `${t('stats.lastSync')} —`;
 
   renderStats(status, events);
   calendar.removeAllEvents();
@@ -287,15 +440,15 @@ function openModal(info) {
     <div class="edit-divider"></div>
     <form id="edit-times-form" class="edit-form">
       <div class="edit-row">
-        <label>Check-in</label>
+        <label>${t('modal.checkIn')}</label>
         <input type="datetime-local" name="start_dt" value="${toInputDt(ev.startStr)}" required />
       </div>
       <div class="edit-row">
-        <label>Check-out</label>
+        <label>${t('modal.checkOut')}</label>
         <input type="datetime-local" name="end_dt" value="${toInputDt(ev.endStr)}" required />
       </div>
       <div class="edit-actions">
-        <button type="submit" class="btn-save">Save changes</button>
+        <button type="submit" class="btn-save">${t('modal.save')}</button>
         <span id="edit-status" class="edit-status"></span>
       </div>
     </form>` : '';
@@ -303,10 +456,10 @@ function openModal(info) {
   document.getElementById('modal-body').innerHTML = `
     <span class="modal-source-badge" style="background:${meta.color || '#555'}">${escHtml(props.sourceName || props.source)}</span>
     <div class="modal-title">${escHtml(ev.title)}</div>
-    <div class="modal-row"><strong>Check-in</strong>  ${fmtDate(ev.startStr)}</div>
-    <div class="modal-row"><strong>Check-out</strong> ${fmtDate(ev.endStr)}</div>
-    ${nights ? `<div class="modal-row"><strong>Nights</strong> ${nights}</div>` : ''}
-    ${props.description ? `<div class="modal-row"><strong>Notes</strong> ${escHtml(props.description)}</div>` : ''}
+    <div class="modal-row"><strong>${t('modal.checkIn')}</strong>  ${fmtDate(ev.startStr)}</div>
+    <div class="modal-row"><strong>${t('modal.checkOut')}</strong> ${fmtDate(ev.endStr)}</div>
+    ${nights ? `<div class="modal-row"><strong>${t('modal.nights')}</strong> ${nights}</div>` : ''}
+    ${props.description ? `<div class="modal-row"><strong>${t('modal.notes')}</strong> ${escHtml(props.description)}</div>` : ''}
     ${editSection}
   `;
 
@@ -315,7 +468,7 @@ function openModal(info) {
       e.preventDefault();
       const fd = new FormData(e.target);
       const statusEl = document.getElementById('edit-status');
-      statusEl.textContent = 'Saving…'; statusEl.className = 'edit-status';
+      statusEl.textContent = t('modal.saving'); statusEl.className = 'edit-status';
 
       const res = await fetch(`/api/events/${encodeURIComponent(ev.id)}/override`, {
         method: 'PATCH',
@@ -324,10 +477,10 @@ function openModal(info) {
       });
 
       if (res.ok) {
-        statusEl.textContent = 'Saved!'; statusEl.classList.add('ok');
+        statusEl.textContent = t('modal.saved'); statusEl.classList.add('ok');
         await loadAll();
       } else {
-        statusEl.textContent = 'Error saving.'; statusEl.classList.add('err');
+        statusEl.textContent = t('modal.saveError'); statusEl.classList.add('err');
       }
     });
   }
@@ -346,13 +499,13 @@ document.getElementById('modal').addEventListener('click', (e) => {
 
 async function loadUsersPage() {
   const container = document.getElementById('users-content');
-  container.innerHTML = '<p class="loading-text">Loading…</p>';
+  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
 
   const res = await fetch('/api/admin/users');
-  if (!res.ok) { container.innerHTML = '<p class="loading-text">Access denied.</p>'; return; }
+  if (!res.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
   const users = await res.json();
 
-  if (!users.length) { container.innerHTML = '<p class="loading-text">No users yet.</p>'; return; }
+  if (!users.length) { container.innerHTML = `<p class="loading-text">${t('users.noUsers')}</p>`; return; }
 
   const rows = users.map(u => `
     <tr data-id="${u.id}">
@@ -372,8 +525,8 @@ async function loadUsersPage() {
       <td>${fmtDateShort(u.created_at) || '—'}</td>
       <td>
         ${u.id !== currentUser?.id
-          ? `<button class="btn-delete" data-uid="${u.id}">&#x2715; Remove</button>`
-          : '<span style="color:var(--text-muted);font-size:0.75rem">you</span>'}
+          ? `<button class="btn-delete" data-uid="${u.id}">${t('users.remove')}</button>`
+          : `<span style="color:var(--text-muted);font-size:0.75rem">${t('users.you')}</span>`}
       </td>
     </tr>`).join('');
 
@@ -381,11 +534,11 @@ async function loadUsersPage() {
     <table class="data-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Last login</th>
-          <th>Joined</th>
+          <th>${t('users.colName')}</th>
+          <th>${t('users.colEmail')}</th>
+          <th>${t('users.colRole')}</th>
+          <th>${t('users.colLastLogin')}</th>
+          <th>${t('users.colJoined')}</th>
           <th></th>
         </tr>
       </thead>
@@ -404,7 +557,7 @@ async function loadUsersPage() {
 
   container.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Remove this user?')) return;
+      if (!confirm(t('users.confirmRemove'))) return;
       const r = await fetch(`/api/admin/users/${btn.dataset.uid}`, { method: 'DELETE' });
       if (r.ok) btn.closest('tr').remove();
     });
@@ -424,13 +577,13 @@ function logBadge(action) {
 
 async function loadLogsPage() {
   const container = document.getElementById('logs-content');
-  container.innerHTML = '<p class="loading-text">Loading…</p>';
+  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
 
   const res = await fetch('/api/admin/logs');
-  if (!res.ok) { container.innerHTML = '<p class="loading-text">Access denied.</p>'; return; }
+  if (!res.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
   const logs = await res.json();
 
-  if (!logs.length) { container.innerHTML = '<p class="loading-text">No activity yet.</p>'; return; }
+  if (!logs.length) { container.innerHTML = `<p class="loading-text">${t('logs.noActivity')}</p>`; return; }
 
   const rows = logs.map(l => {
     const [cls, label] = logBadge(l.action);
@@ -448,11 +601,11 @@ async function loadLogsPage() {
     <table class="data-table">
       <thead>
         <tr>
-          <th>Time</th>
-          <th>Type</th>
-          <th>User</th>
-          <th>Action</th>
-          <th>Details</th>
+          <th>${t('logs.colTime')}</th>
+          <th>${t('logs.colType')}</th>
+          <th>${t('logs.colUser')}</th>
+          <th>${t('logs.colAction')}</th>
+          <th>${t('logs.colDetails')}</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -476,7 +629,7 @@ async function initPush() {
   if (!toggle) return;
 
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    statusEl.textContent = 'Not supported in this browser';
+    statusEl.textContent = t('push.notSupported');
     toggle.disabled = true;
     return;
   }
@@ -487,7 +640,7 @@ async function initPush() {
   // Check current subscription state
   const existing = await reg.pushManager.getSubscription();
   toggle.checked = !!existing;
-  if (existing) { statusEl.textContent = 'Enabled'; statusEl.className = 'push-status ok'; }
+  if (existing) { statusEl.textContent = t('push.enabled'); statusEl.className = 'push-status ok'; }
 
   toggle.addEventListener('change', async () => {
     statusEl.textContent = '…';
@@ -498,7 +651,7 @@ async function initPush() {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
         toggle.checked = false;
-        statusEl.textContent = 'Permission denied';
+        statusEl.textContent = t('push.permDenied');
         statusEl.className = 'push-status err';
         return;
       }
@@ -513,7 +666,7 @@ async function initPush() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub),
       });
-      statusEl.textContent = 'Enabled'; statusEl.className = 'push-status ok';
+      statusEl.textContent = t('push.enabled'); statusEl.className = 'push-status ok';
     } else {
       const sub = await reg.pushManager.getSubscription();
       if (sub) {
@@ -524,7 +677,7 @@ async function initPush() {
         });
         await sub.unsubscribe();
       }
-      statusEl.textContent = 'Disabled'; statusEl.className = 'push-status';
+      statusEl.textContent = t('push.disabled'); statusEl.className = 'push-status';
     }
   });
 }
@@ -600,6 +753,7 @@ async function init() {
   const calEl = document.getElementById('calendar');
   calendar = new FullCalendar.Calendar(calEl, {
     initialView: 'dayGridMonth',
+    locale: t('cal.locale'),
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
@@ -614,6 +768,7 @@ async function init() {
   });
   calendar.render();
 
+  applyTranslations();
   initSettings();
   initPush();
 

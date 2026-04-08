@@ -111,6 +111,10 @@ function renderAuth(user) {
   const el = document.getElementById('header-auth');
 
   if (!user) {
+    if (IS_STATIC) {
+      el.innerHTML = '';
+      return;
+    }
     el.innerHTML = `
       <a href="/auth/google" class="btn-google-login">
         <svg width="16" height="16" viewBox="0 0 48 48">

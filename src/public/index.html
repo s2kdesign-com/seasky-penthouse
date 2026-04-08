@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SeaSky Penthouse — Dashboard</title>
+  <title>SeaSky Apartments — Booking Dashboard</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <!-- FullCalendar -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
@@ -24,7 +32,14 @@
   <header class="header">
     <div class="header-left">
       <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">&#9776;</button>
-      <span class="logo">SeaSky Penthouse</span>
+      <a class="header-logo" href="https://seasky-apartments.com" target="_blank" rel="noopener">
+        <img src="https://seasky-apartments.com/wp-content/uploads/2024/10/seasky-apartments-logo-110x220-1.webp"
+             alt="SeaSky Apartments" />
+        <span class="header-logo-text">
+          SeaSky
+          <span>Booking Dashboard</span>
+        </span>
+      </a>
     </div>
     <div class="header-right">
       <div id="header-auth" class="header-auth"></div>

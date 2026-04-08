@@ -515,7 +515,7 @@ async function init() {
 
   const calEl = document.getElementById('calendar');
   calendar = new FullCalendar.Calendar(calEl, {
-    initialView: 'multiMonthYear',
+    initialView: 'dayGridMonth',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',

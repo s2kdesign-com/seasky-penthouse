@@ -276,8 +276,8 @@ function renderAuth(user) {
           ${t('auth.signIn')}
         </button>`;
       document.getElementById('static-google-btn').addEventListener('click', () => {
-        if (window.google?.accounts) {
-          google.accounts.id.prompt();
+        if (_gisTokenClient) {
+          _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
         }
       });
       return;
@@ -320,6 +320,8 @@ function renderAuth(user) {
     </div>`;
 }
 
+let _gisTokenClient = null;
+
 function loadStaticGoogleAuth() {
   const clientId = document.querySelector('meta[name="google-client-id"]')?.content;
   if (!clientId) return;
@@ -336,26 +338,29 @@ function loadStaticGoogleAuth() {
     }
   }
 
-  renderAuth(null); // render button container
+  renderAuth(null); // render button
 
   const onGisLoad = () => {
-    google.accounts.id.initialize({
+    // Use oauth2 token client — always opens a real popup on button click
+    _gisTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: clientId,
-      callback: (response) => {
-        // Decode JWT payload (display only — trust comes from Google's popup)
-        const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(atob(base64));
-        const user = { name: payload.name, email: payload.email, avatar: payload.picture };
-        localStorage.setItem('static_user', JSON.stringify(user));
-        currentUser = user;
-        renderAuth(user);
+      scope: 'openid email profile',
+      callback: async (response) => {
+        if (response.error) return;
+        try {
+          const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${response.access_token}` },
+          }).then(r => r.json());
+          const user = { name: info.name, email: info.email, avatar: info.picture };
+          localStorage.setItem('static_user', JSON.stringify(user));
+          currentUser = user;
+          renderAuth(user);
+        } catch (e) { /* network error — ignore */ }
       },
     });
-    // Trigger One Tap if supported; button click also calls prompt()
-    google.accounts.id.prompt();
   };
 
-  if (window.google?.accounts) {
+  if (window.google?.accounts?.oauth2) {
     onGisLoad();
   } else {
     const s = document.createElement('script');

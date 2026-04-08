@@ -402,7 +402,7 @@ async function initPush() {
   }
 
   // Register service worker
-  const reg = await navigator.serviceWorker.register('/sw.js');
+  const reg = await navigator.serviceWorker.register('./sw.js');
 
   // Check current subscription state
   const existing = await reg.pushManager.getSubscription();

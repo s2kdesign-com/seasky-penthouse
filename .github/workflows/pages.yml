@@ -1,0 +1,75 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]       # deploy on every push to main branch
+  schedule:
+    - cron: '0 * * * *'            # re-fetch ICS feeds every hour
+  workflow_dispatch:               # allow manual trigger from GitHub UI
+
+# Required permissions for Pages deployment
+permissions:
+  contents: write                  # to commit updated docs/data/ JSON
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Node.js ─────────────────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Build WASM ──────────────────────────────────────────────────────────
+      - name: Build WASM module
+        run: npm run build:wasm
+
+      # ── Export static site ───────────────────────────────────────────────────
+      - name: Export static calendar data
+        env:
+          # ICS feeds are public URLs — no secrets needed for fetching.
+          # Add any required env vars here if feeds become private.
+          NODE_ENV: production
+        run: npm run export-static
+
+      # ── Commit updated data back to repo (keeps history) ────────────────────
+      - name: Commit updated docs/data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --cached --quiet || git commit -m "chore: update calendar data [skip ci]"
+          git push
+        continue-on-error: true    # don't fail if nothing changed
+
+      # ── Deploy to GitHub Pages ───────────────────────────────────────────────
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

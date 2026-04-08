@@ -181,6 +181,11 @@ app.delete('/api/push/subscribe', (req, res) => {
 });
 
 // ─── Static files (always public) ────────────────────────────────────────────
+// Ensure .wasm files are served with the correct MIME type
+app.use((req, res, next) => {
+  if (req.path.endsWith('.wasm')) res.type('application/wasm');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Cron Job ─────────────────────────────────────────────────────────────────

@@ -1,8 +1,23 @@
 'use strict';
 
 let calendar;
-let feedMeta = [];
+let feedMeta    = [];
 let currentUser = null;
+
+// ─── WASM calendar utilities ──────────────────────────────────────────────────
+
+let wasmExports = null;
+
+async function loadWasm() {
+  try {
+    const base = document.querySelector('meta[name="base-url"]')?.content || '';
+    const res  = await WebAssembly.instantiateStreaming(fetch(`${base}/calendar.wasm`));
+    wasmExports = res.instance.exports;
+    console.log('[WASM] calendar.wasm loaded');
+  } catch (e) {
+    console.warn('[WASM] calendar.wasm unavailable, using JS fallback', e.message);
+  }
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,8 +38,12 @@ function fmtDateShort(iso) {
 
 function nightCount(start, end) {
   if (!start || !end) return null;
-  const ms = new Date(end) - new Date(start);
-  const nights = Math.round(ms / 86400000);
+  const ms = BigInt(new Date(end)) - BigInt(new Date(start));
+  if (ms <= 0n) return null;
+  // Use WASM if loaded, otherwise pure JS
+  const nights = wasmExports
+    ? wasmExports.nightCount(BigInt(new Date(start)), BigInt(new Date(end)))
+    : Number(ms / 86400000n);
   return nights > 0 ? nights : null;
 }
 
@@ -149,12 +168,10 @@ function renderStats(statusData, events) {
 }
 
 async function loadAll() {
-  const [eventsRes, statusRes] = await Promise.all([
-    fetch('/api/events'),
-    fetch('/api/status'),
+  const [events, status] = await Promise.all([
+    apiGet('/api/events'),
+    apiGet('/api/status'),
   ]);
-  const events = await eventsRes.json();
-  const status = await statusRes.json();
 
   document.getElementById('last-sync-label').textContent =
     status.lastSync ? `Last sync: ${fmtDate(status.lastSync)}` : 'Last sync: —';
@@ -453,9 +470,31 @@ function initSettings() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+// Detect static/GitHub Pages mode (no server API available)
+const IS_STATIC = document.documentElement.dataset.static === 'true';
+
+async function apiGet(path) {
+  if (IS_STATIC) {
+    // Map API paths to pre-generated JSON files
+    const map = {
+      '/api/events':  './data/events.json',
+      '/api/status':  './data/status.json',
+      '/api/feeds':   './data/feeds.json',
+      '/api/me':      null,
+    };
+    const file = map[path];
+    if (!file) return null;
+    const r = await fetch(file);
+    return r.ok ? r.json() : null;
+  }
+  const r = await fetch(path);
+  return r.ok ? r.json() : null;
+}
+
 async function init() {
-  const meRes = await fetch('/api/me');
-  currentUser = await meRes.json();
+  await loadWasm();
+
+  currentUser = await apiGet('/api/me');
   renderAuth(currentUser);
 
   // Show admin-only nav items
@@ -463,13 +502,15 @@ async function init() {
     document.querySelectorAll('.nav-admin-only').forEach(el => el.classList.add('visible'));
   }
 
-  // Hide sync button for non-admins
-  if (!currentUser || currentUser.role !== 'admin') {
+  // Hide admin-only controls in static mode or for non-admins
+  if (IS_STATIC || !currentUser || currentUser.role !== 'admin') {
     document.getElementById('sync-btn').style.display = 'none';
   }
+  if (IS_STATIC) {
+    document.querySelectorAll('.nav-admin-only').forEach(el => el.style.display = 'none');
+  }
 
-  const feedsRes = await fetch('/api/feeds');
-  feedMeta = await feedsRes.json();
+  feedMeta = (await apiGet('/api/feeds')) || [];
   renderLegend();
 
   const calEl = document.getElementById('calendar');

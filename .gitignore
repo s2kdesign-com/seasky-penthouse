@@ -15,6 +15,9 @@ certs/
 # Server runtime log
 server.log
 
+# Build artefacts that are re-generated (but docs/ itself IS committed for Pages)
+scripts/db-stub.js
+
 # OS
 .DS_Store
 Thumbs.db

@@ -112,7 +112,7 @@ function renderAuth(user) {
 
   if (!user) {
     if (IS_STATIC) {
-      el.innerHTML = '';
+      el.innerHTML = '<div id="g_signin_btn"></div>';
       return;
     }
     el.innerHTML = `
@@ -128,6 +128,22 @@ function renderAuth(user) {
     return;
   }
 
+  if (IS_STATIC) {
+    el.innerHTML = `
+      <div class="user-chip">
+        ${user.avatar ? `<img class="user-avatar" src="${escHtml(user.avatar)}" alt="" />` : ''}
+        <span class="user-name">${escHtml(user.name)}</span>
+        <button class="btn-logout" id="static-signout">Sign out</button>
+      </div>`;
+    document.getElementById('static-signout').addEventListener('click', () => {
+      localStorage.removeItem('static_user');
+      currentUser = null;
+      renderAuth(null);
+      loadStaticGoogleAuth();
+    });
+    return;
+  }
+
   el.innerHTML = `
     <div class="user-chip">
       ${user.avatar ? `<img class="user-avatar" src="${escHtml(user.avatar)}" alt="" />` : ''}
@@ -135,6 +151,54 @@ function renderAuth(user) {
       <span class="role-badge ${escHtml(user.role)}">${escHtml(user.role)}</span>
       <a href="/auth/logout" class="btn-logout">Sign out</a>
     </div>`;
+}
+
+function loadStaticGoogleAuth() {
+  const clientId = document.querySelector('meta[name="google-client-id"]')?.content;
+  if (!clientId) return;
+
+  // Check for a stored session first
+  const stored = localStorage.getItem('static_user');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      renderAuth(currentUser);
+      return;
+    } catch (e) {
+      localStorage.removeItem('static_user');
+    }
+  }
+
+  renderAuth(null); // render button container
+
+  const onGisLoad = () => {
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (response) => {
+        // Decode JWT payload (display only — trust comes from Google's popup)
+        const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64));
+        const user = { name: payload.name, email: payload.email, avatar: payload.picture };
+        localStorage.setItem('static_user', JSON.stringify(user));
+        currentUser = user;
+        renderAuth(user);
+      },
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('g_signin_btn'),
+      { theme: 'filled_black', size: 'medium', shape: 'pill' },
+    );
+  };
+
+  if (window.google?.accounts) {
+    onGisLoad();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = onGisLoad;
+    document.head.appendChild(s);
+  }
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -498,8 +562,12 @@ async function apiGet(path) {
 async function init() {
   await loadWasm();
 
-  currentUser = await apiGet('/api/me');
-  renderAuth(currentUser);
+  if (IS_STATIC) {
+    loadStaticGoogleAuth();
+  } else {
+    currentUser = await apiGet('/api/me');
+    renderAuth(currentUser);
+  }
 
   // Show admin-only nav items
   if (currentUser?.role === 'admin') {

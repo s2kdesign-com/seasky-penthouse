@@ -86,9 +86,10 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
   html = html.replace('<html lang="en">', '<html lang="en" data-static="true">');
 
   // Add base-url meta tag so WASM fetch works relative to repo sub-path
+  // Also inject Google Client ID for client-side GIS login
   html = html.replace(
     '<meta charset="UTF-8" />',
-    '<meta charset="UTF-8" />\n  <meta name="base-url" content="." />',
+    `<meta charset="UTF-8" />\n  <meta name="base-url" content="." />\n  <meta name="google-client-id" content="${process.env.GOOGLE_CLIENT_ID || ''}" />`,
   );
 
   // Remove login.html link (no auth in static mode)

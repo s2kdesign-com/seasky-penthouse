@@ -38,6 +38,10 @@ Module._load = function (request, parent, isMain) {
   if (request.endsWith('/db') || request.endsWith('\\db')) {
     return require(dbStubPath);
   }
+  // pushService is not needed for static export — stub it out
+  if (request.endsWith('/pushService') || request.endsWith('\\pushService')) {
+    return { sendToAll: async () => {} };
+  }
   return _origLoad.apply(this, arguments);
 };
 

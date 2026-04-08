@@ -3,11 +3,13 @@
 const webpush = require('web-push');
 const db = require('./db');
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL || 'mailto:admin@localhost',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY,
-);
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL || 'mailto:admin@localhost',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  );
+}
 
 /**
  * Send a push notification to all subscribers.

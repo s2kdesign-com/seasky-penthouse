@@ -6,8 +6,8 @@ node_modules/
 .env.local
 .env.*.local
 
-# Local SQLite database
-data/
+# Local SQLite database (root-level only)
+/data/
 
 # TLS certificates — generated locally with mkcert
 certs/

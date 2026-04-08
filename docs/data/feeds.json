@@ -1,0 +1,17 @@
+[
+  {
+    "id": "airbnb",
+    "name": "Airbnb",
+    "color": "#FF5A5F"
+  },
+  {
+    "id": "booking",
+    "name": "Booking.com",
+    "color": "#003580"
+  },
+  {
+    "id": "official",
+    "name": "Official Website",
+    "color": "#2C7BE5"
+  }
+]

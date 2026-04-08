@@ -9,8 +9,8 @@
     "sourceName": "Airbnb",
     "color": "#FF5A5F",
     "description": "",
-    "rawStart": "2026-04-08T21:00:00.000Z",
-    "rawEnd": "2026-04-09T21:00:00.000Z"
+    "rawStart": "2026-04-09T00:00:00.000Z",
+    "rawEnd": "2026-04-10T00:00:00.000Z"
   },
   {
     "id": "booking_769939cb87faffea1b9224b38b29ffe1@booking.com",
@@ -22,8 +22,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-04-05T21:00:00.000Z",
-    "rawEnd": "2026-04-07T21:00:00.000Z"
+    "rawStart": "2026-04-06T00:00:00.000Z",
+    "rawEnd": "2026-04-08T00:00:00.000Z"
   },
   {
     "id": "booking_a6d3d4e9d86ee5f4e51f85253cf82dbb@booking.com",
@@ -35,8 +35,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-04-09T21:00:00.000Z",
-    "rawEnd": "2026-04-14T21:00:00.000Z"
+    "rawStart": "2026-04-10T00:00:00.000Z",
+    "rawEnd": "2026-04-15T00:00:00.000Z"
   },
   {
     "id": "booking_dc3b3355dcc4f73ece8cdb9c1759cabf@booking.com",
@@ -48,8 +48,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-05-26T21:00:00.000Z",
-    "rawEnd": "2026-05-31T21:00:00.000Z"
+    "rawStart": "2026-05-27T00:00:00.000Z",
+    "rawEnd": "2026-06-01T00:00:00.000Z"
   },
   {
     "id": "booking_abf7abba151fd36b38f90938a7151999@booking.com",
@@ -61,8 +61,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-06-27T21:00:00.000Z",
-    "rawEnd": "2026-07-04T21:00:00.000Z"
+    "rawStart": "2026-06-28T00:00:00.000Z",
+    "rawEnd": "2026-07-05T00:00:00.000Z"
   },
   {
     "id": "booking_65259bd6eb63ea3bf9366180533cb51b@booking.com",
@@ -74,8 +74,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-07-15T21:00:00.000Z",
-    "rawEnd": "2026-07-20T21:00:00.000Z"
+    "rawStart": "2026-07-16T00:00:00.000Z",
+    "rawEnd": "2026-07-21T00:00:00.000Z"
   },
   {
     "id": "booking_a5dde5272a6ad6f4e014c3e1a8fcdc49@booking.com",
@@ -87,8 +87,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-08-08T21:00:00.000Z",
-    "rawEnd": "2026-08-22T21:00:00.000Z"
+    "rawStart": "2026-08-09T00:00:00.000Z",
+    "rawEnd": "2026-08-23T00:00:00.000Z"
   },
   {
     "id": "booking_eb26c02c284aa364c2d68545d3367efa@booking.com",
@@ -100,8 +100,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2026-09-11T21:00:00.000Z",
-    "rawEnd": "2026-09-18T21:00:00.000Z"
+    "rawStart": "2026-09-12T00:00:00.000Z",
+    "rawEnd": "2026-09-19T00:00:00.000Z"
   },
   {
     "id": "booking_067e36e0325e293e72e46999c7b66878@booking.com",
@@ -113,8 +113,8 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2027-03-31T21:00:00.000Z",
-    "rawEnd": "2027-04-07T21:00:00.000Z"
+    "rawStart": "2027-04-01T00:00:00.000Z",
+    "rawEnd": "2027-04-08T00:00:00.000Z"
   },
   {
     "id": "booking_056a191796ebe7430dfa264c8d64638d@booking.com",
@@ -126,11 +126,11 @@
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2027-04-08T21:00:00.000Z",
-    "rawEnd": "2027-10-07T21:00:00.000Z"
+    "rawStart": "2027-04-09T00:00:00.000Z",
+    "rawEnd": "2027-10-08T00:00:00.000Z"
   },
   {
-    "id": "official_6e39f345a765c1680345ff07973540f1@seasky-apartments.com",
+    "id": "official_7d7d57f9c544fd4a3d1ade6abc940aea@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41131",
     "start": "2026-03-29T15:00",
     "end": "2026-03-30T11:00",
@@ -139,11 +139,11 @@
     "sourceName": "Official Website",
     "color": "#2C7BE5",
     "description": "",
-    "rawStart": "2026-03-28T22:00:00.000Z",
-    "rawEnd": "2026-03-29T21:00:00.000Z"
+    "rawStart": "2026-03-29T00:00:00.000Z",
+    "rawEnd": "2026-03-30T00:00:00.000Z"
   },
   {
-    "id": "official_e919cf3a60c892004b78671454ff89cb@seasky-apartments.com",
+    "id": "official_39080b3fc47f787af514fc5905dba2b7@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 40644",
     "start": "2025-01-05T15:00",
     "end": "2025-01-07T11:00",
@@ -152,11 +152,11 @@
     "sourceName": "Official Website",
     "color": "#2C7BE5",
     "description": "",
-    "rawStart": "2025-01-04T22:00:00.000Z",
-    "rawEnd": "2025-01-06T22:00:00.000Z"
+    "rawStart": "2025-01-05T00:00:00.000Z",
+    "rawEnd": "2025-01-07T00:00:00.000Z"
   },
   {
-    "id": "official_4a8d0513b4abc17e9768ee10edc0a1a1@seasky-apartments.com",
+    "id": "official_8ebe515c1270cfb0874596a530130df7@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 40638",
     "start": "2024-11-18T15:00",
     "end": "2025-01-05T11:00",
@@ -165,7 +165,7 @@
     "sourceName": "Official Website",
     "color": "#2C7BE5",
     "description": "",
-    "rawStart": "2024-11-17T22:00:00.000Z",
-    "rawEnd": "2025-01-04T22:00:00.000Z"
+    "rawStart": "2024-11-18T00:00:00.000Z",
+    "rawEnd": "2025-01-05T00:00:00.000Z"
   }
 ]

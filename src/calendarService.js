@@ -78,7 +78,9 @@ function applyTimes(eventId, rawStart, rawEnd) {
 
 async function fetchFeed(feed) {
   try {
-    const events = await ical.async.fromURL(feed.url);
+    const events = await ical.async.fromURL(feed.url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SeaSkyBot/1.0)' },
+    });
     const parsed = [];
 
     for (const key of Object.keys(events)) {

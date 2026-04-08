@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Local SQLite database
+data/
+
+# TLS certificates — generated locally with mkcert
+certs/
+
+# Server runtime log
+server.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp

@@ -80,6 +80,19 @@ const TRANSLATIONS = {
     'links.officialSite':    'Official Website',
     'links.bookingDesc':     'Book on Booking.com',
     'links.airbnbDesc':      'Book on Airbnb',
+    'nav.linkConfig':        'Link Settings',
+    'linkConfig.social':     'Social & Review Links',
+    'linkConfig.rental':     'Rental Platform Links',
+    'linkConfig.facebookDesc':'Facebook page URL',
+    'linkConfig.instagramDesc':'Instagram profile URL',
+    'linkConfig.googleDesc': 'Google review / share URL',
+    'linkConfig.officialDesc':'Your property website URL',
+    'linkConfig.bookingDesc':'Booking.com listing URL',
+    'linkConfig.airbnbDesc': 'Airbnb listing URL',
+    'linkConfig.save':       'Save Links',
+    'linkConfig.saving':     'Saving...',
+    'linkConfig.saved':      'Links saved!',
+    'linkConfig.error':      'Error saving links.',
     'nav.account':           'Account',
     'account.profile':       'Profile',
     'account.session':       'Session',
@@ -165,6 +178,19 @@ const TRANSLATIONS = {
     'links.officialSite':    'Официален сайт',
     'links.bookingDesc':     'Резервирайте в Booking.com',
     'links.airbnbDesc':      'Резервирайте в Airbnb',
+    'nav.linkConfig':        'Настройка на линкове',
+    'linkConfig.social':     'Социални мрежи и отзиви',
+    'linkConfig.rental':     'Платформи за наемане',
+    'linkConfig.facebookDesc':'URL на Facebook страницата',
+    'linkConfig.instagramDesc':'URL на Instagram профила',
+    'linkConfig.googleDesc': 'URL за Google отзив / споделяне',
+    'linkConfig.officialDesc':'URL на вашия уебсайт',
+    'linkConfig.bookingDesc':'URL на обявата в Booking.com',
+    'linkConfig.airbnbDesc': 'URL на обявата в Airbnb',
+    'linkConfig.save':       'Запази линковете',
+    'linkConfig.saving':     'Запазване...',
+    'linkConfig.saved':      'Линковете са запазени!',
+    'linkConfig.error':      'Грешка при запазване.',
     'nav.account':           'Акаунт',
     'account.profile':       'Профил',
     'account.session':       'Сесия',
@@ -287,10 +313,11 @@ function navigateTo(page) {
   const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (navEl) navEl.classList.add('active');
 
-  if (page === 'users')    loadUsersPage();
-  if (page === 'logs')     loadLogsPage();
-  if (page === 'account')  loadAccountPage();
-  if (page === 'settings') initPush();
+  if (page === 'users')       loadUsersPage();
+  if (page === 'logs')        loadLogsPage();
+  if (page === 'link-config') loadLinkConfigPage();
+  if (page === 'account')     loadAccountPage();
+  if (page === 'settings')    initPush();
 }
 
 document.querySelectorAll('.nav-item').forEach(a => {
@@ -871,6 +898,74 @@ document.getElementById('logs-refresh').addEventListener('click', loadLogsPage);
 
 // ─── Account page ────────────────────────────────────────────────────────────
 
+// ─── Link Config (admin) ─────────────────────────────────────────────────────
+
+const LINK_KEYS = ['LINK_FACEBOOK', 'LINK_INSTAGRAM', 'LINK_GOOGLE', 'LINK_OFFICIAL', 'LINK_BOOKING', 'LINK_AIRBNB'];
+
+async function loadLinkConfigPage() {
+  if (!currentUser || currentUser.role !== 'admin') return;
+  try {
+    const res = await fetch('/api/admin/config');
+    if (!res.ok) return;
+    const allConfig = await res.json();
+    const configMap = {};
+    for (const row of allConfig) configMap[row.key] = row.value;
+    for (const key of LINK_KEYS) {
+      const input = document.getElementById(`cfg-${key}`);
+      if (input) input.value = configMap[key] || '';
+    }
+  } catch (e) { console.error('Failed to load link config', e); }
+
+  // Wire up save button
+  const saveBtn = document.getElementById('link-config-save');
+  const statusEl = document.getElementById('link-config-status');
+
+  // Remove old listener by cloning
+  const newBtn = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+
+  newBtn.addEventListener('click', async () => {
+    newBtn.disabled = true;
+    statusEl.textContent = t('linkConfig.saving');
+    statusEl.className = 'link-config-status';
+    try {
+      for (const key of LINK_KEYS) {
+        const input = document.getElementById(`cfg-${key}`);
+        const value = input ? input.value.trim() : '';
+        await fetch(`/api/admin/config/${encodeURIComponent(key)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value, is_public: true }),
+        });
+      }
+      statusEl.textContent = t('linkConfig.saved');
+      statusEl.className = 'link-config-status link-config-success';
+      // Refresh dynamic links on the page
+      await applyDynamicLinks();
+    } catch (e) {
+      statusEl.textContent = t('linkConfig.error');
+      statusEl.className = 'link-config-status link-config-error';
+    }
+    newBtn.disabled = false;
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  });
+}
+
+async function applyDynamicLinks() {
+  try {
+    const config = await apiGet('/api/config');
+    if (!config) return;
+    for (const key of LINK_KEYS) {
+      if (!config[key]) continue;
+      document.querySelectorAll(`[data-link-key="${key}"]`).forEach(el => {
+        el.href = config[key];
+      });
+    }
+  } catch (e) { /* silent */ }
+}
+
+// ─── Account ─────────────────────────────────────────────────────────────────
+
 function loadAccountPage() {
   const avatarWrap = document.getElementById('account-avatar-wrap');
   const infoEl     = document.getElementById('account-info');
@@ -1072,6 +1167,9 @@ async function init() {
 
   feedMeta = (await apiGet('/api/feeds')) || [];
   renderLegend();
+
+  // Apply dynamic links from config
+  await applyDynamicLinks();
 
   const calEl = document.getElementById('calendar');
   calendar = new FullCalendar.Calendar(calEl, {

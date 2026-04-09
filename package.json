@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "build:wasm": "node scripts/build-wasm.js",
     "export-static": "node scripts/export-static.js",
-    "build": "npm run build:wasm && npm run export-static"
+    "build": "npm run build:wasm && npm run export-static",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
-    "wabt": "^1.0.39"
+    "wabt": "^1.0.39",
+    "wrangler": "^4.81.1"
   }
 }

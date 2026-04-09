@@ -99,6 +99,37 @@ app.get('/api/events', (_req, res) => res.json(getEvents()));
 app.get('/api/status', (_req, res) => res.json(getStatus()));
 app.get('/api/feeds',  (_req, res) => res.json(getFeeds().map(({ id, name, color }) => ({ id, name, color }))));
 
+// ICS calendar feed export
+app.get('/api/calendar.ics', (_req, res) => {
+  const events = getEvents();
+  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0',
+    'PRODID:-//SeaSky Apartments//Booking Dashboard//EN',
+    'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'X-WR-CALNAME:SeaSky Penthouse Bookings',
+    'X-WR-TIMEZONE:Europe/Sofia',
+  ];
+  for (const ev of events) {
+    const uid = (ev.id || '').replace(/[^a-zA-Z0-9_-]/g, '_') + '@seasky-penthouse';
+    const toICS = (s) => { const d = new Date(s); return isNaN(d) ? '' : d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); };
+    const dtstart = toICS(ev.start || ev.rawStart);
+    const dtend = toICS(ev.end || ev.rawEnd);
+    if (!dtstart || !dtend) continue;
+    const summary = (ev.title || 'Booked').replace(/[,;\\]/g, '\\$&');
+    lines.push('BEGIN:VEVENT', `UID:${uid}`, `DTSTAMP:${now}`,
+      `DTSTART:${dtstart}`, `DTEND:${dtend}`, `SUMMARY:${summary}`,
+      `CATEGORIES:${ev.sourceName || ev.source || ''}`, 'STATUS:CONFIRMED', 'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  res.set({
+    'Content-Type': 'text/calendar; charset=utf-8',
+    'Content-Disposition': 'attachment; filename="seasky-penthouse.ics"',
+    'Cache-Control': 'public, max-age=3600',
+  });
+  res.send(lines.join('\r\n'));
+});
+
 // Public config (GOOGLE_CLIENT_ID, VAPID_PUBLIC_KEY, etc.)
 app.get('/api/config', (_req, res) => res.json(db.getPublicConfig()));
 
@@ -231,7 +262,8 @@ cron.schedule('0 * * * *', async () => {
 
   // HTTP → HTTPS redirect
   http.createServer((req, res) => {
-    res.writeHead(301, { Location: `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}` });
+    const host = (req.headers.host || 'localhost').split(':')[0];
+    res.writeHead(301, { Location: `https://${host}:${HTTPS_PORT}${req.url}` });
     res.end();
   }).listen(HTTP_PORT, () => {
     console.log(`HTTP redirect listening on http://localhost:${HTTP_PORT} → https`);

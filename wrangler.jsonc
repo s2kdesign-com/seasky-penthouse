@@ -1,0 +1,25 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "seasky-calendar",
+	"main": "worker/src/index.js",
+	"compatibility_date": "2025-04-30",
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "seasky-calendar-db",
+			"database_id": "1a0bbe3f-3fe2-4b0f-b79e-94ae1210f1a1"
+		}
+	],
+	"triggers": {
+		"crons": ["0 * * * *"]
+	},
+	"assets": {
+		"directory": "./src/public/"
+	},
+	"vars": {
+		"BASE_URL": "https://seasky-calendar.coingardenworld.workers.dev"
+	}
+}

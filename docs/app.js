@@ -27,6 +27,10 @@ const TRANSLATIONS = {
     'settings.pushDesc':     'Get notified when new bookings are detected',
     'stats.total':           'Total Bookings',
     'stats.acrossAll':       'across all sources',
+    'stats.upcoming':        'Upcoming',
+    'stats.occupancy':       'Occupancy',
+    'stats.thisMonth':       'this month',
+    'stats.nights':          'nights',
     'stats.synced':          'Synced',
     'stats.error':           'Error:',
     'stats.lastSync':        'Last sync:',
@@ -61,6 +65,12 @@ const TRANSLATIONS = {
     'push.disabled':         'Disabled',
     'push.permDenied':       'Permission denied',
     'cal.locale':            'en',
+    'legend.past':           'Past',
+    'legend.today':          'Today',
+    'legend.booked':         'Booked',
+    'legend.available':      'Available',
+    'legend.checkin':        'Check-in',
+    'legend.checkout':       'Check-out',
   },
   bg: {
     'header.subtitle':       'Система за резервации',
@@ -82,6 +92,10 @@ const TRANSLATIONS = {
     'settings.pushDesc':     'Известие при нова резервация',
     'stats.total':           'Общо резервации',
     'stats.acrossAll':       'от всички източници',
+    'stats.upcoming':        'Предстоящи',
+    'stats.occupancy':       'Заетост',
+    'stats.thisMonth':       'този месец',
+    'stats.nights':          'нощувки',
     'stats.synced':          'Синхронизирано',
     'stats.error':           'Грешка:',
     'stats.lastSync':        'Последна синхронизация:',
@@ -116,6 +130,12 @@ const TRANSLATIONS = {
     'push.disabled':         'Деактивирано',
     'push.permDenied':       'Разрешението е отказано',
     'cal.locale':            'bg',
+    'legend.past':           'Минали',
+    'legend.today':          'Днес',
+    'legend.booked':         'Заети',
+    'legend.available':      'Свободни',
+    'legend.checkin':        'Настаняване',
+    'legend.checkout':       'Напускане',
   },
 };
 
@@ -374,22 +394,199 @@ async function loadStaticGoogleAuth() {
   }
 }
 
+// ─── Booking Map & Cell Styling ──────────────────────────────────────────────
+
+function buildBookingMap(events) {
+  const map = new Map();
+  for (const ev of events) {
+    const props = ev.extendedProps || ev;
+    const rawStart = ev.startStr || ev.start;
+    const rawEnd   = ev.endStr   || ev.end;
+    if (!rawStart || !rawEnd) continue;
+
+    const startD = new Date(rawStart);
+    const endD   = new Date(rawEnd);
+    // Normalize to date-only strings (YYYY-MM-DD)
+    const startDate = rawStart.slice(0, 10);
+    const endDate   = rawEnd.slice(0, 10);
+
+    // Iterate day by day from start to end (inclusive)
+    const cur = new Date(startDate + 'T00:00:00Z');
+    const last = new Date(endDate + 'T00:00:00Z');
+
+    while (cur <= last) {
+      const key = cur.toISOString().slice(0, 10);
+      const entry = {
+        source: props.source,
+        sourceName: props.sourceName || ev.title,
+        color: props.color || ev.backgroundColor || '#888',
+        title: ev.title,
+        isCheckIn: key === startDate,
+        isCheckOut: key === endDate,
+      };
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(entry);
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+  }
+  return map;
+}
+
+function refreshCellStyles() {
+  if (!calendar) return;
+  const events = calendar.getEvents();
+  const bookingMap = buildBookingMap(events);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayDate = new Date(todayStr + 'T00:00:00Z');
+
+  const cells = document.querySelectorAll('.fc-daygrid-day');
+  const statusClasses = ['day-past', 'day-today', 'day-booked', 'day-checkin', 'day-checkout', 'day-transition', 'day-available'];
+
+  for (const cell of cells) {
+    const dateStr = cell.getAttribute('data-date');
+    if (!dateStr) continue;
+
+    // Remove old status classes
+    statusClasses.forEach(c => cell.classList.remove(c));
+
+    const cellDate = new Date(dateStr + 'T00:00:00Z');
+    const bookings = bookingMap.get(dateStr);
+
+    if (cellDate < todayDate) {
+      cell.classList.add('day-past');
+    } else if (dateStr === todayStr) {
+      cell.classList.add('day-today');
+    } else if (bookings && bookings.length > 0) {
+      // Check if this day has both a check-in and check-out from different bookings
+      const hasCheckIn  = bookings.some(b => b.isCheckIn);
+      const hasCheckOut = bookings.some(b => b.isCheckOut);
+      const allCheckIn  = bookings.every(b => b.isCheckIn);
+      const allCheckOut = bookings.every(b => b.isCheckOut);
+
+      if (hasCheckIn && hasCheckOut && !allCheckIn && !allCheckOut) {
+        // Transition day: one booking checks out, another checks in
+        cell.classList.add('day-transition');
+      } else if (allCheckIn) {
+        cell.classList.add('day-checkin');
+      } else if (allCheckOut) {
+        cell.classList.add('day-checkout');
+      } else {
+        cell.classList.add('day-booked');
+      }
+
+      // Set custom property for booking color
+      const mainColor = bookings.find(b => !b.isCheckOut)?.color || bookings[0].color;
+      cell.style.setProperty('--booking-color', mainColor);
+    } else {
+      cell.classList.add('day-available');
+    }
+  }
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 function renderLegend() {
-  document.getElementById('legend').innerHTML = feedMeta.map(f => `
+  // Property-style status legend
+  const statusLegend = `
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-past"></span>
+      ${escHtml(t('legend.past'))}
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-today"></span>
+      ${escHtml(t('legend.today'))}
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-booked"></span>
+      ${escHtml(t('legend.booked'))}
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-available"></span>
+      ${escHtml(t('legend.available'))}
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-checkin"></span>
+      ${escHtml(t('legend.checkin'))}
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch legend-swatch-checkout"></span>
+      ${escHtml(t('legend.checkout'))}
+    </div>`;
+
+  // Source legend (existing feed colors)
+  const sourceLegend = feedMeta.map(f => `
     <div class="legend-item">
       <span class="legend-dot" style="background:${f.color}"></span>
       ${escHtml(f.name)}
     </div>`).join('');
+
+  const divider = feedMeta.length ? '<span class="legend-divider"></span>' : '';
+
+  document.getElementById('legend').innerHTML = statusLegend + divider + sourceLegend;
 }
 
 function renderStats(statusData, events) {
+  // Calculate upcoming bookings (future only)
+  const now = new Date();
+  const upcoming = events.filter(ev => {
+    const start = new Date(ev.start || ev.startStr);
+    return start > now;
+  });
+
+  // Calculate occupancy for current month
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthStart = new Date(Date.UTC(year, month, 1));
+  const monthEnd   = new Date(Date.UTC(year, month + 1, 0));
+
+  const occupiedDays = new Set();
+  for (const ev of events) {
+    const rawStart = ev.start || ev.startStr;
+    const rawEnd   = ev.end   || ev.endStr;
+    if (!rawStart || !rawEnd) continue;
+
+    const evStart = new Date(rawStart.slice(0, 10) + 'T00:00:00Z');
+    const evEnd   = new Date(rawEnd.slice(0, 10) + 'T00:00:00Z');
+
+    const rangeStart = evStart < monthStart ? monthStart : evStart;
+    const rangeEnd   = evEnd > monthEnd ? monthEnd : evEnd;
+
+    const cur = new Date(rangeStart);
+    while (cur <= rangeEnd) {
+      occupiedDays.add(cur.toISOString().slice(0, 10));
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+  }
+
+  const occupiedNights = occupiedDays.size;
+  const occupancyPct = daysInMonth > 0 ? Math.round((occupiedNights / daysInMonth) * 100) : 0;
+
   const totalCard = `
     <div class="stat-card">
       <span class="stat-label">${t('stats.total')}</span>
       <span class="stat-value">${events.length}</span>
       <span class="stat-sub">${t('stats.acrossAll')}</span>
+    </div>`;
+
+  const upcomingCard = `
+    <div class="stat-card">
+      <span class="stat-label">${t('stats.upcoming')}</span>
+      <span class="stat-value">${upcoming.length}</span>
+      <span class="stat-sub">${t('stats.acrossAll')}</span>
+    </div>`;
+
+  const occupancyCard = `
+    <div class="stat-card">
+      <span class="stat-label">${t('stats.occupancy')}</span>
+      <span class="stat-value occupancy-value">${occupancyPct}%</span>
+      <span class="stat-sub">${occupiedNights} ${t('stats.nights')} ${t('stats.thisMonth')}</span>
+      <div class="occupancy-bar-wrap">
+        <div class="occupancy-bar" style="width:${occupancyPct}%"></div>
+      </div>
     </div>`;
 
   const feedCards = statusData.feeds.map(f => {
@@ -405,7 +602,7 @@ function renderStats(statusData, events) {
       </div>`;
   });
 
-  document.getElementById('stats-row').innerHTML = totalCard + feedCards.join('');
+  document.getElementById('stats-row').innerHTML = totalCard + upcomingCard + occupancyCard + feedCards.join('');
 }
 
 async function loadAll() {
@@ -420,6 +617,7 @@ async function loadAll() {
   renderStats(status, events);
   calendar.removeAllEvents();
   calendar.addEventSource(events);
+  setTimeout(refreshCellStyles, 80);
 }
 
 document.getElementById('sync-btn').addEventListener('click', async () => {
@@ -766,14 +964,32 @@ async function init() {
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'multiMonthYear,dayGridMonth,timeGridWeek,listMonth',
+      right: 'dayGridMonth,multiMonthYear',
     },
     height: 'auto',
     firstDay: 1,
     nowIndicator: true,
+    fixedWeekCount: false,
+    dayMaxEvents: 3,
     eventDisplay: 'block',
     eventClick: openModal,
-    eventDidMount(info) { info.el.title = info.event.title; },
+    datesSet() { setTimeout(refreshCellStyles, 50); },
+    eventDidMount(info) {
+      info.el.title = info.event.title;
+      setTimeout(refreshCellStyles, 50);
+    },
+    eventContent(arg) {
+      const ev = arg.event;
+      const props = ev.extendedProps;
+      const n = nightCount(ev.startStr, ev.endStr);
+      return {
+        html: `<div class="booking-pill">
+          <span class="booking-pill-dot" style="background:${escHtml(props.color || ev.backgroundColor || '#888')}"></span>
+          <span class="booking-pill-label">${escHtml(props.sourceName || ev.title)}</span>
+          ${n ? `<span class="booking-pill-nights">${n}n</span>` : ''}
+        </div>`
+      };
+    },
   });
   calendar.render();
 

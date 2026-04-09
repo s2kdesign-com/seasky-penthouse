@@ -224,6 +224,13 @@ export default {
   async fetch(request, env, ctx) {
     try {
       await db.ensureSchema(env.DB);
+
+      // Auto-sync on first request if cache is empty
+      const cached = await db.getCachedEvents(env.DB);
+      if (cached.length === 0) {
+        ctx.waitUntil(syncAllFeeds(env.DB));
+      }
+
       return await handleRequest(request, env);
     } catch (err) {
       console.error('Worker error:', err.stack || err.message);

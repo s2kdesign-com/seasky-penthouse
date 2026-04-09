@@ -99,6 +99,9 @@ app.get('/api/events', (_req, res) => res.json(getEvents()));
 app.get('/api/status', (_req, res) => res.json(getStatus()));
 app.get('/api/feeds',  (_req, res) => res.json(getFeeds().map(({ id, name, color }) => ({ id, name, color }))));
 
+// Public config (GOOGLE_CLIENT_ID, VAPID_PUBLIC_KEY, etc.)
+app.get('/api/config', (_req, res) => res.json(db.getPublicConfig()));
+
 // Save date/time override for a single event — admin only
 app.patch('/api/events/:id/override', requireAdmin, (req, res) => {
   const { id } = req.params;
@@ -160,6 +163,26 @@ app.get('/api/admin/logs', requireAdmin, (_req, res) => {
   res.json(db.getLogs());
 });
 
+// Config management — admin only
+app.get('/api/admin/config', requireAdmin, (_req, res) => {
+  res.json(db.getAllConfig());
+});
+
+app.put('/api/admin/config/:key', requireAdmin, (req, res) => {
+  const { key } = req.params;
+  const { value, is_public } = req.body;
+  if (value === undefined) return res.status(400).json({ error: 'value required' });
+  db.setConfig(key, value, !!is_public);
+  db.addLog(req.user.id, req.user.name, 'Updated config', `${key} = ${is_public ? '(public)' : '(private)'}`);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/config/:key', requireAdmin, (req, res) => {
+  db.deleteConfig(req.params.key);
+  db.addLog(req.user.id, req.user.name, 'Deleted config', req.params.key);
+  res.json({ ok: true });
+});
+
 // ─── Push notifications ───────────────────────────────────────────────────────
 app.get('/api/push/vapid-public-key', (_req, res) => {
   res.json({ key: process.env.VAPID_PUBLIC_KEY });
@@ -195,6 +218,10 @@ cron.schedule('0 * * * *', async () => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 (async () => {
+  // Seed config table from .env (only inserts missing keys)
+  db.seedConfigFromEnv(process.env);
+  console.log('Config seeded from .env');
+
   await syncAllFeeds();
 
   // HTTPS server

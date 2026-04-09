@@ -321,9 +321,12 @@ function renderAuth(user) {
 }
 
 let _gisTokenClient = null;
+let _appConfig = null;
 
-function loadStaticGoogleAuth() {
-  const clientId = document.querySelector('meta[name="google-client-id"]')?.content;
+async function loadStaticGoogleAuth() {
+  // Load public config from API / static JSON
+  _appConfig = (await apiGet('/api/config')) || {};
+  const clientId = _appConfig.GOOGLE_CLIENT_ID;
   if (!clientId) return;
 
   // Check for a stored session first
@@ -718,6 +721,7 @@ async function apiGet(path) {
       '/api/events':  './data/events.json',
       '/api/status':  './data/status.json',
       '/api/feeds':   './data/feeds.json',
+      '/api/config':  './data/config.json',
       '/api/me':      null,
     };
     const file = map[path];
@@ -733,7 +737,7 @@ async function init() {
   await loadWasm();
 
   if (IS_STATIC) {
-    loadStaticGoogleAuth();
+    await loadStaticGoogleAuth();
   } else {
     currentUser = await apiGet('/api/me');
     renderAuth(currentUser);

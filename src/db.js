@@ -51,6 +51,13 @@ db.exec(`
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_login  DATETIME
   );
+
+  CREATE TABLE IF NOT EXISTS config (
+    key         TEXT    PRIMARY KEY,
+    value       TEXT    NOT NULL,
+    is_public   INTEGER NOT NULL DEFAULT 0,  -- 1 = safe to expose on GitHub Pages
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -97,6 +104,20 @@ const stmts = {
       updated_by = excluded.updated_by,
       updated_at = CURRENT_TIMESTAMP
   `),
+
+  // config
+  getConfig:       db.prepare('SELECT value FROM config WHERE key = ?'),
+  getAllConfig:     db.prepare('SELECT key, value, is_public FROM config ORDER BY key'),
+  getPublicConfig: db.prepare('SELECT key, value FROM config WHERE is_public = 1 ORDER BY key'),
+  upsertConfig:    db.prepare(`
+    INSERT INTO config (key, value, is_public)
+    VALUES (@key, @value, @is_public)
+    ON CONFLICT(key) DO UPDATE SET
+      value      = excluded.value,
+      is_public  = excluded.is_public,
+      updated_at = CURRENT_TIMESTAMP
+  `),
+  deleteConfig:    db.prepare('DELETE FROM config WHERE key = ?'),
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -161,9 +182,48 @@ function upsertOverride(eventId, startDt, endDt, userId) {
   stmts.upsertOverride.run({ event_id: eventId, start_dt: startDt, end_dt: endDt, updated_by: userId });
 }
 
+// Config
+function getConfig(key)     { const r = stmts.getConfig.get(key); return r ? r.value : null; }
+function getAllConfig()      { return stmts.getAllConfig.all(); }
+function getPublicConfig()  {
+  const rows = stmts.getPublicConfig.all();
+  return Object.fromEntries(rows.map(r => [r.key, r.value]));
+}
+function setConfig(key, value, isPublic) {
+  stmts.upsertConfig.run({ key, value: String(value), is_public: isPublic ? 1 : 0 });
+}
+function deleteConfig(key)  { stmts.deleteConfig.run(key); }
+
+/**
+ * Seed config table from environment variables (only inserts missing keys).
+ */
+function seedConfigFromEnv(env) {
+  const seeds = [
+    // Public — safe to expose on GitHub Pages
+    { key: 'GOOGLE_CLIENT_ID',  value: env.GOOGLE_CLIENT_ID,  isPublic: true },
+    { key: 'VAPID_PUBLIC_KEY',  value: env.VAPID_PUBLIC_KEY,  isPublic: true },
+    { key: 'BASE_URL',          value: env.BASE_URL,          isPublic: true },
+    // Private — server-only secrets
+    { key: 'GOOGLE_CLIENT_SECRET', value: env.GOOGLE_CLIENT_SECRET, isPublic: false },
+    { key: 'GOOGLE_API_KEY',      value: env.GOOGLE_API_KEY,       isPublic: false },
+    { key: 'VAPID_PRIVATE_KEY',   value: env.VAPID_PRIVATE_KEY,    isPublic: false },
+    { key: 'VAPID_EMAIL',         value: env.VAPID_EMAIL,          isPublic: false },
+    { key: 'SESSION_SECRET',      value: env.SESSION_SECRET,       isPublic: false },
+  ];
+  for (const s of seeds) {
+    if (!s.value) continue;
+    // Only seed if key doesn't already exist
+    const existing = stmts.getConfig.get(s.key);
+    if (!existing) {
+      stmts.upsertConfig.run({ key: s.key, value: s.value, is_public: s.isPublic ? 1 : 0 });
+    }
+  }
+}
+
 module.exports = {
   upsertUser, getUserByGoogleId, getUserById, listUsers, setUserRole, deleteUser,
   saveSub, removeSub, getAllSubs,
   addLog, getLogs,
   getOverride, getAllOverrides, upsertOverride,
+  getConfig, getAllConfig, getPublicConfig, setConfig, deleteConfig, seedConfigFromEnv,
 };

@@ -22,6 +22,9 @@ const path = require('path');
 process.env.CI_STATIC = 'true';
 
 // Minimal db stub so calendarService doesn't crash without a real DB
+// Load the real db module to read config + overrides
+const realDb = require('../src/db');
+
 const dbStubPath = path.join(__dirname, 'db-stub.js');
 fs.writeFileSync(dbStubPath, `
 'use strict';
@@ -31,7 +34,7 @@ module.exports = {
 };
 `);
 
-// Temporarily patch require to use the stub for db
+// Temporarily patch require to use the stub for db (calendarService gets the stub)
 const Module = require('module');
 const _origLoad = Module._load;
 Module._load = function (request, parent, isMain) {
@@ -64,10 +67,12 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
   const feeds  = getFeeds().map(({ id, name, color }) => ({ id, name, color }));
 
   // ── 2. Write JSON data ───────────────────────────────────────────────────
+  const publicConfig = realDb.getPublicConfig();
   fs.writeFileSync(path.join(DATA_DIR, 'events.json'), JSON.stringify(events, null, 2));
   fs.writeFileSync(path.join(DATA_DIR, 'status.json'), JSON.stringify(status, null, 2));
   fs.writeFileSync(path.join(DATA_DIR, 'feeds.json'),  JSON.stringify(feeds,  null, 2));
-  console.log(`✓ Wrote ${events.length} events to docs/data/`);
+  fs.writeFileSync(path.join(DATA_DIR, 'config.json'), JSON.stringify(publicConfig, null, 2));
+  console.log(`✓ Wrote ${events.length} events + config to docs/data/`);
 
   // ── 3. Copy public assets ────────────────────────────────────────────────
   const COPY = ['app.js', 'style.css', 'sw.js', 'calendar.wasm', 'icon-192.png', 'favicon.ico'];
@@ -86,10 +91,9 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
   html = html.replace('<html lang="en">', '<html lang="en" data-static="true">');
 
   // Add base-url meta tag so WASM fetch works relative to repo sub-path
-  // Also inject Google Client ID for client-side GIS login
   html = html.replace(
     '<meta charset="UTF-8" />',
-    `<meta charset="UTF-8" />\n  <meta name="base-url" content="." />\n  <meta name="google-client-id" content="${process.env.GOOGLE_CLIENT_ID || ''}" />`,
+    '<meta charset="UTF-8" />\n  <meta name="base-url" content="." />',
   );
 
   // Remove login.html link (no auth in static mode)

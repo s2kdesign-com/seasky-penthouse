@@ -22,6 +22,10 @@ const TRANSLATIONS = {
     'settings.themeDesc':    'Choose how the dashboard looks',
     'settings.dark':         'Dark',
     'settings.light':        'Light',
+    'settings.regional':     'Regional',
+    'settings.timezone':     'Time zone',
+    'settings.timezoneDesc': 'Times displayed throughout the dashboard',
+    'settings.tzAuto':       'Auto (browser)',
     'settings.notifications':'Notifications',
     'settings.push':         'Push notifications',
     'settings.pushDesc':     'Get notified when new bookings are detected',
@@ -124,6 +128,10 @@ const TRANSLATIONS = {
     'settings.themeDesc':    'Изберете как изглежда таблото',
     'settings.dark':         'Тъмна',
     'settings.light':        'Светла',
+    'settings.regional':     'Регионални',
+    'settings.timezone':     'Часова зона',
+    'settings.timezoneDesc': 'Часовете в таблото се показват в тази зона',
+    'settings.tzAuto':       'Автоматично (браузър)',
     'settings.notifications':'Известия',
     'settings.push':         'Push известия',
     'settings.pushDesc':     'Известие при нова резервация',
@@ -214,6 +222,11 @@ const TRANSLATIONS = {
 };
 
 let currentLang = localStorage.getItem('lang') || 'en';
+let userTimezone = localStorage.getItem('timezone') || '';  // '' = auto (browser default)
+
+function getUserTZ() {
+  return userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
 
 function t(key) {
   return TRANSLATIONS[currentLang]?.[key] ?? TRANSLATIONS.en[key] ?? key;
@@ -269,6 +282,7 @@ function fmtDate(iso) {
   return new Date(iso).toLocaleString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
+    timeZone: getUserTZ(),
   });
 }
 
@@ -276,6 +290,7 @@ function fmtDateShort(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
+    timeZone: getUserTZ(),
   });
 }
 
@@ -317,7 +332,7 @@ function navigateTo(page) {
   if (page === 'logs')        loadLogsPage();
   if (page === 'link-config') loadLinkConfigPage();
   if (page === 'account')     loadAccountPage();
-  if (page === 'settings')    initPush();
+  if (page === 'settings')    { initTimezone(); initPush(); }
 }
 
 document.querySelectorAll('.nav-item').forEach(a => {
@@ -1035,6 +1050,93 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
+// ─── Timezone selector ───────────────────────────────────────────────────────
+
+const COMMON_TIMEZONES = [
+  'Pacific/Midway', 'Pacific/Honolulu', 'America/Anchorage', 'America/Los_Angeles',
+  'America/Denver', 'America/Chicago', 'America/New_York', 'America/Caracas',
+  'America/Sao_Paulo', 'Atlantic/Azores', 'Europe/London', 'Europe/Paris',
+  'Europe/Sofia', 'Europe/Helsinki', 'Europe/Moscow', 'Asia/Dubai',
+  'Asia/Karachi', 'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Bangkok',
+  'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland',
+];
+
+function initTimezone() {
+  const select = document.getElementById('tz-select');
+  const currentEl = document.getElementById('tz-current');
+  if (!select) return;
+
+  // Build the full timezone list: auto + common + all Intl timezones
+  const allZones = new Set(COMMON_TIMEZONES);
+  try {
+    // Intl.supportedValuesOf is available in modern browsers
+    if (Intl.supportedValuesOf) {
+      for (const tz of Intl.supportedValuesOf('timeZone')) allZones.add(tz);
+    }
+  } catch (e) { /* fallback to common list */ }
+
+  const sorted = [...allZones].sort((a, b) => {
+    // Sort by UTC offset then name
+    try {
+      const now = Date.now();
+      const offA = new Date(now).toLocaleString('en', { timeZone: a, timeZoneName: 'shortOffset' });
+      const offB = new Date(now).toLocaleString('en', { timeZone: b, timeZoneName: 'shortOffset' });
+      return offA.localeCompare(offB) || a.localeCompare(b);
+    } catch { return a.localeCompare(b); }
+  });
+
+  // Build options
+  select.innerHTML = '';
+  const autoOpt = document.createElement('option');
+  autoOpt.value = '';
+  autoOpt.textContent = `${t('settings.tzAuto')} — ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+  select.appendChild(autoOpt);
+
+  for (const tz of sorted) {
+    const opt = document.createElement('option');
+    opt.value = tz;
+    // Show UTC offset
+    try {
+      const off = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
+        .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
+      opt.textContent = `${tz.replace(/_/g, ' ')} (${off})`;
+    } catch {
+      opt.textContent = tz.replace(/_/g, ' ');
+    }
+    select.appendChild(opt);
+  }
+
+  // Set current value
+  select.value = userTimezone;
+
+  // Show current time in selected zone
+  function updateCurrentTime() {
+    const tz = getUserTZ();
+    const now = new Date().toLocaleString(undefined, {
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      timeZone: tz, timeZoneName: 'short',
+    });
+    currentEl.textContent = now;
+  }
+  updateCurrentTime();
+  const tzInterval = setInterval(updateCurrentTime, 1000);
+  // Clean up when navigating away (simple approach: clear on next navigateTo)
+  select._tzInterval = tzInterval;
+
+  // Handle change
+  select.addEventListener('change', () => {
+    userTimezone = select.value;
+    localStorage.setItem('timezone', userTimezone);
+    updateCurrentTime();
+    // Update calendar timezone
+    if (calendar) {
+      calendar.setOption('timeZone', getUserTZ());
+    }
+  });
+}
+
+// ─── Push notifications ─────────────────────────────────────────────────────
+
 async function initPush() {
   const toggle   = document.getElementById('push-toggle');
   const statusEl = document.getElementById('push-status');
@@ -1175,6 +1277,7 @@ async function init() {
   calendar = new FullCalendar.Calendar(calEl, {
     initialView: 'dayGridMonth',
     locale: t('cal.locale'),
+    timeZone: getUserTZ(),
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',

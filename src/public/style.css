@@ -638,6 +638,23 @@ h1, h2, h3 {
 .push-status.ok  { color: #51cf66; }
 .push-status.err { color: #ff6b6b; }
 
+/* Timezone selector */
+.tz-select-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.tz-select {
+  width: 280px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: 'Jost', sans-serif;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.tz-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,175,55,0.15); }
+.tz-current { font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
 /* ─── Nav divider ────────────────────────────────────────────────────────────── */
 .nav-divider {
   height: 1px;
@@ -1061,6 +1078,8 @@ h1, h2, h3 {
   .theme-options { width: 100%; }
   .theme-btn { flex: 1; }
   .settings-section { max-width: 100%; }
+  .tz-select-wrap { align-items: flex-start; }
+  .tz-select { width: 100%; }
 
   /* Account page mobile */
   .account-layout { max-width: 100%; }

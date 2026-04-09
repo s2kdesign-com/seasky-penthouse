@@ -187,6 +187,8 @@ h1, h2, h3 {
 
 .nav-admin-only { display: none; }
 .nav-admin-only.visible { display: block; }
+.nav-auth-only { display: none; }
+.nav-auth-only.visible { display: block; }
 
 /* ─── Main content ───────────────────────────────────────────────────────────── */
 .main {
@@ -705,6 +707,131 @@ h1, h2, h3 {
 .theme-preview-light .tp-sidebar { background: #ffffff; }
 .theme-preview-light .tp-body    { background: #f0f2f8; }
 
+/* ─── Account page ──────────────────────────────────────────────────────────── */
+.account-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 640px;
+}
+
+.account-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+
+.account-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.account-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.account-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.account-avatar-initial {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.account-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.account-email {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.account-not-signed {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.account-sign-prompt {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.account-detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.account-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.account-detail-row:last-child {
+  border-bottom: none;
+}
+
+.account-detail-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.account-detail-value {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.account-danger {
+  border-color: rgba(220, 50, 50, 0.25);
+}
+.account-danger .settings-heading {
+  color: #e07070;
+}
+
+.btn-danger {
+  background: none;
+  border: 1px solid rgba(220, 50, 50, 0.4);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e07070;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn-danger:hover {
+  background: rgba(220, 50, 50, 0.1);
+  border-color: #e07070;
+}
+
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -781,6 +908,14 @@ h1, h2, h3 {
   .theme-options { width: 100%; }
   .theme-btn { flex: 1; }
   .settings-section { max-width: 100%; }
+
+  /* Account page mobile */
+  .account-layout { max-width: 100%; }
+  .account-profile-card { flex-direction: column; text-align: center; gap: 16px; }
+  .account-info { display: flex; flex-direction: column; align-items: center; }
+  .account-card { padding: 20px 16px; }
+  .account-detail-row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; }
+  .account-danger .settings-row { flex-direction: column; align-items: flex-start; gap: 12px; }
 
   /* Edit form */
   .edit-row { flex-direction: column; align-items: flex-start; gap: 4px; }

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" data-static="true">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="base-url" content="." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Booking Dashboard — SeaSky Penthouse</title>
   <meta name="description" content="Booking management dashboard for SeaSky Penthouse in Burgas Sea Garden. View and manage reservations from Airbnb, Booking.com, and the official website in one calendar." />
@@ -100,6 +99,12 @@
           </a>
         </li>
         <li class="nav-divider"></li>
+        <li class="nav-auth-only">
+          <a class="nav-item" data-page="account" href="#">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span data-i18n="nav.account">Account</span>
+          </a>
+        </li>
         <li>
           <a class="nav-item" data-page="settings" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -186,6 +191,36 @@
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
               <p id="push-status" class="push-status"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Account page ──────────────────────────────────────────────── -->
+      <div id="page-account" class="page">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav.account">Account</h1>
+        </div>
+        <div class="account-layout">
+          <!-- Profile card -->
+          <div class="account-card account-profile-card">
+            <div class="account-avatar-wrap" id="account-avatar-wrap"></div>
+            <div class="account-info" id="account-info"></div>
+          </div>
+          <!-- Session & Security -->
+          <div class="account-card">
+            <h2 class="settings-heading" data-i18n="account.session">Session</h2>
+            <div class="account-detail-grid" id="account-session"></div>
+          </div>
+          <!-- Danger zone -->
+          <div class="account-card account-danger">
+            <h2 class="settings-heading" data-i18n="account.dangerZone">Danger Zone</h2>
+            <div class="settings-row">
+              <div class="settings-label">
+                <span class="settings-label-title" data-i18n="account.signOutTitle">Sign out of this device</span>
+                <span class="settings-label-desc" data-i18n="account.signOutDesc">You will need to sign in again with Google</span>
+              </div>
+              <a href="/auth/logout" class="btn-danger" id="account-logout-btn" data-i18n="auth.signOut">Sign out</a>
             </div>
           </div>
         </div>

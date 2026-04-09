@@ -71,6 +71,21 @@ const TRANSLATIONS = {
     'legend.available':      'Available',
     'legend.checkin':        'Check-in',
     'legend.checkout':       'Check-out',
+    'nav.account':           'Account',
+    'account.profile':       'Profile',
+    'account.session':       'Session',
+    'account.dangerZone':    'Danger Zone',
+    'account.signOutTitle':  'Sign out of this device',
+    'account.signOutDesc':   'You will need to sign in again with Google',
+    'account.name':          'Name',
+    'account.email':         'Email',
+    'account.role':          'Role',
+    'account.provider':      'Sign-in provider',
+    'account.google':        'Google',
+    'account.joined':        'Member since',
+    'account.lastLogin':     'Last login',
+    'account.notSignedIn':   'You are not signed in.',
+    'account.signInPrompt':  'Sign in with Google to view your account.',
   },
   bg: {
     'header.subtitle':       'Система за резервации',
@@ -132,6 +147,21 @@ const TRANSLATIONS = {
     'cal.locale':            'bg',
     'legend.past':           'Минали',
     'legend.today':          'Днес',
+    'nav.account':           'Акаунт',
+    'account.profile':       'Профил',
+    'account.session':       'Сесия',
+    'account.dangerZone':    'Опасна зона',
+    'account.signOutTitle':  'Изход от устройството',
+    'account.signOutDesc':   'Ще трябва да влезете отново с Google',
+    'account.name':          'Име',
+    'account.email':         'Имейл',
+    'account.role':          'Роля',
+    'account.provider':      'Вход чрез',
+    'account.google':        'Google',
+    'account.joined':        'Член от',
+    'account.lastLogin':     'Последен вход',
+    'account.notSignedIn':   'Не сте влезли в профила си.',
+    'account.signInPrompt':  'Влезте с Google, за да видите акаунта си.',
     'legend.booked':         'Заети',
     'legend.available':      'Свободни',
     'legend.checkin':        'Настаняване',
@@ -241,6 +271,7 @@ function navigateTo(page) {
 
   if (page === 'users')    loadUsersPage();
   if (page === 'logs')     loadLogsPage();
+  if (page === 'account')  loadAccountPage();
   if (page === 'settings') initPush();
 }
 
@@ -820,6 +851,68 @@ async function loadLogsPage() {
 
 document.getElementById('logs-refresh').addEventListener('click', loadLogsPage);
 
+// ─── Account page ────────────────────────────────────────────────────────────
+
+function loadAccountPage() {
+  const avatarWrap = document.getElementById('account-avatar-wrap');
+  const infoEl     = document.getElementById('account-info');
+  const sessionEl  = document.getElementById('account-session');
+  const logoutBtn  = document.getElementById('account-logout-btn');
+
+  if (!currentUser) {
+    avatarWrap.innerHTML = `
+      <div class="account-avatar-placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>`;
+    infoEl.innerHTML = `
+      <p class="account-not-signed">${t('account.notSignedIn')}</p>
+      <p class="account-sign-prompt">${t('account.signInPrompt')}</p>
+      <a href="/auth/google" class="btn-google-login" style="margin-top:12px">
+        <svg width="16" height="16" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        ${t('auth.signIn')}
+      </a>`;
+    sessionEl.innerHTML = '';
+    logoutBtn.style.display = 'none';
+    return;
+  }
+
+  logoutBtn.style.display = '';
+
+  // Avatar
+  avatarWrap.innerHTML = currentUser.avatar
+    ? `<img class="account-avatar-lg" src="${escHtml(currentUser.avatar)}" alt="${escHtml(currentUser.name)}" />`
+    : `<div class="account-avatar-placeholder">
+        <span class="account-avatar-initial">${escHtml((currentUser.name || '?')[0].toUpperCase())}</span>
+      </div>`;
+
+  // Profile info
+  const roleCls = currentUser.role === 'admin' ? 'admin' : 'subscriber';
+  infoEl.innerHTML = `
+    <h2 class="account-name">${escHtml(currentUser.name)}</h2>
+    <p class="account-email">${escHtml(currentUser.email || '—')}</p>
+    <span class="role-badge ${roleCls}" style="margin-top:6px">${escHtml(currentUser.role)}</span>
+  `;
+
+  // Session details
+  const details = [
+    { label: t('account.provider'), value: `<svg width="14" height="14" viewBox="0 0 48 48" style="vertical-align:-2px;margin-right:4px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> ${t('account.google')}` },
+    { label: t('account.joined'),   value: escHtml(fmtDateShort(currentUser.created_at)) },
+    { label: t('account.lastLogin'), value: escHtml(fmtDate(currentUser.last_login)) },
+  ];
+
+  sessionEl.innerHTML = details.map(d => `
+    <div class="account-detail-row">
+      <span class="account-detail-label">${d.label}</span>
+      <span class="account-detail-value">${d.value}</span>
+    </div>
+  `).join('');
+}
+
 // ─── Push notifications ───────────────────────────────────────────────────────
 
 function urlBase64ToUint8Array(base64String) {
@@ -939,6 +1032,11 @@ async function init() {
   } else {
     currentUser = await apiGet('/api/me');
     renderAuth(currentUser);
+  }
+
+  // Show auth-only nav items (visible to any signed-in user)
+  if (currentUser) {
+    document.querySelectorAll('.nav-auth-only').forEach(el => el.classList.add('visible'));
   }
 
   // Show admin-only nav items

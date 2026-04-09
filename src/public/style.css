@@ -1040,6 +1040,59 @@ h1, h2, h3 {
 .link-config-success { color: #4caf50; }
 .link-config-error { color: #ef5350; }
 
+/* ─── Feed Config ──────────────────────────────────────────────────────────── */
+.feed-config-form { max-width: 800px; }
+.feed-config-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+.feed-config-row {
+  margin-bottom: 12px;
+  padding: 16px;
+}
+.feed-row-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+.feed-field { display: flex; flex-direction: column; gap: 4px; }
+.feed-field label { font-size: 0.8rem; color: var(--text-muted); }
+.feed-field .config-input { width: 140px; }
+.feed-field-url .config-input { width: 320px; }
+.feed-field-color { width: 60px; }
+.feed-color-input {
+  width: 44px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  padding: 2px;
+}
+.feed-field-remove {
+  display: flex; align-items: flex-end;
+}
+.btn-feed-remove {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: #ef5350;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-feed-remove:hover {
+  background: #ef5350;
+  color: #fff;
+}
+.btn-secondary {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+.btn-secondary:hover {
+  background: var(--bg) !important;
+}
+
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 .footer {
   background: var(--header-bg);
@@ -1192,6 +1245,14 @@ h1, h2, h3 {
 
   /* Link config mobile */
   .link-config-form { max-width: 100%; }
+
+  /* Feed config mobile */
+  .feed-config-form { max-width: 100%; }
+  .feed-row-fields { flex-direction: column; }
+  .feed-field .config-input { width: 100%; }
+  .feed-field-url .config-input { width: 100%; }
+  .feed-field-color { width: 100%; }
+  .feed-color-input { width: 100%; }
   .config-input { width: 100%; }
 
   /* Footer mobile */

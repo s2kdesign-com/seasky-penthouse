@@ -5,7 +5,7 @@
 
 import * as db from './db.js';
 import * as auth from './auth.js';
-import { syncAllFeeds, getEvents, getStatus, generateICS, FEEDS } from './ics.js';
+import { syncAllFeeds, getEvents, getStatus, generateICS, getFeeds, saveFeeds } from './ics.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -82,7 +82,8 @@ async function handleRequest(request, env) {
   }
 
   if (path === '/api/feeds' && method === 'GET') {
-    return json(FEEDS.map(({ id, name, color }) => ({ id, name, color })));
+    const feeds = await getFeeds(env.DB);
+    return json(feeds.map(({ id, name, color }) => ({ id, name, color })));
   }
 
   if (path === '/api/config' && method === 'GET') {
@@ -212,6 +213,30 @@ async function handleRequest(request, env) {
     const key = decodeURIComponent(configKeyMatch[1]);
     await db.deleteConfig(env.DB, key);
     await db.addLog(env.DB, user.id, user.name, 'Deleted config', key);
+    return json({ ok: true });
+  }
+
+  // ── Admin: ICS feeds management ─────────────────────────────────────────────
+
+  if (path === '/api/admin/feeds' && method === 'GET') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    const feeds = await getFeeds(env.DB);
+    return json(feeds);
+  }
+
+  if (path === '/api/admin/feeds' && method === 'PUT') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    const body = await readJSON(request);
+    if (!Array.isArray(body.feeds)) return json({ error: 'feeds array required' }, 400);
+    // Validate each feed
+    for (const f of body.feeds) {
+      if (!f.id || !f.name || !f.url) return json({ error: 'Each feed needs id, name, url' }, 400);
+    }
+    await saveFeeds(env.DB, body.feeds);
+    await db.addLog(env.DB, user.id, user.name, 'Updated ICS feeds',
+      `${body.feeds.length} feed(s) configured`);
     return json({ ok: true });
   }
 

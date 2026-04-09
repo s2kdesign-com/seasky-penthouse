@@ -9,7 +9,7 @@ function getPush() { return push || (push = require('./pushService')); }
 const DEFAULT_CHECKIN_TIME  = '15:00';
 const DEFAULT_CHECKOUT_TIME = '11:00';
 
-const FEEDS = [
+let FEEDS = [
   {
     id: 'airbnb',
     name: 'Airbnb',
@@ -180,5 +180,6 @@ function getEvents() {
 
 function getStatus() { return { lastSync, feeds: syncStatus }; }
 function getFeeds()  { return FEEDS; }
+function setFeeds(newFeeds) { FEEDS = newFeeds; }
 
-module.exports = { syncAllFeeds, getEvents, getStatus, getFeeds };
+module.exports = { syncAllFeeds, getEvents, getStatus, getFeeds, setFeeds };

@@ -8,7 +8,7 @@ import * as db from './db.js';
 const DEFAULT_CHECKIN_TIME  = '15:00';
 const DEFAULT_CHECKOUT_TIME = '11:00';
 
-export const FEEDS = [
+const DEFAULT_FEEDS = [
   {
     id: 'airbnb',
     name: 'Airbnb',
@@ -28,6 +28,23 @@ export const FEEDS = [
     color: '#2C7BE5',
   },
 ];
+
+/** Load feeds from D1 config, falling back to hardcoded defaults. */
+export async function getFeeds(d1) {
+  try {
+    const raw = await db.getConfig(d1, 'ICS_FEEDS');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch { /* fall through */ }
+  return DEFAULT_FEEDS;
+}
+
+/** Save feeds array to D1 config. */
+export async function saveFeeds(d1, feeds) {
+  await db.setConfig(d1, 'ICS_FEEDS', JSON.stringify(feeds), false);
+}
 
 // ─── ICS parser ──────────────────────────────────────────────────────────────
 
@@ -166,6 +183,7 @@ function applyTimes(rawStart, rawEnd, override) {
 export async function syncAllFeeds(d1) {
   console.log(`[${new Date().toISOString()}] Syncing calendar feeds...`);
 
+  const FEEDS = await getFeeds(d1);
   const results = await Promise.allSettled(FEEDS.map(feed => fetchFeed(feed)));
   const allEvents = [];
 

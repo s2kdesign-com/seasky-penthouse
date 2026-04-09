@@ -113,6 +113,25 @@ const TRANSLATIONS = {
     'linkConfig.saving':     'Saving...',
     'linkConfig.saved':      'Links saved!',
     'linkConfig.error':      'Error saving links.',
+    'nav.feedConfig':        'ICS Feeds',
+    'feedConfig.desc':       'Configure the iCal (ICS) feeds to sync bookings from external platforms.',
+    'feedConfig.addFeed':    'Add Feed',
+    'feedConfig.save':       'Save Feeds',
+    'feedConfig.saving':     'Saving...',
+    'feedConfig.saved':      'Feeds saved!',
+    'feedConfig.error':      'Error saving feeds.',
+    'feedConfig.syncNow':    'Sync Now',
+    'feedConfig.syncing':    'Syncing...',
+    'feedConfig.synced':     'Sync complete!',
+    'feedConfig.syncError':  'Sync failed.',
+    'feedConfig.id':         'Feed ID',
+    'feedConfig.name':       'Display Name',
+    'feedConfig.url':        'ICS Feed URL',
+    'feedConfig.color':      'Color',
+    'feedConfig.remove':     'Remove',
+    'feedConfig.idPlaceholder':   'e.g. airbnb',
+    'feedConfig.namePlaceholder': 'e.g. Airbnb',
+    'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
     'nav.account':           'Account',
     'account.profile':       'Profile',
     'account.session':       'Session',
@@ -231,6 +250,25 @@ const TRANSLATIONS = {
     'linkConfig.saving':     'Запазване...',
     'linkConfig.saved':      'Линковете са запазени!',
     'linkConfig.error':      'Грешка при запазване.',
+    'nav.feedConfig':        'ICS Канали',
+    'feedConfig.desc':       'Конфигурирайте iCal (ICS) каналите за синхронизиране на резервации от външни платформи.',
+    'feedConfig.addFeed':    'Добави канал',
+    'feedConfig.save':       'Запази каналите',
+    'feedConfig.saving':     'Запазване...',
+    'feedConfig.saved':      'Каналите са запазени!',
+    'feedConfig.error':      'Грешка при запазване.',
+    'feedConfig.syncNow':    'Синхронизирай',
+    'feedConfig.syncing':    'Синхронизиране...',
+    'feedConfig.synced':     'Синхронизацията завърши!',
+    'feedConfig.syncError':  'Грешка при синхронизация.',
+    'feedConfig.id':         'ID на канала',
+    'feedConfig.name':       'Име за показване',
+    'feedConfig.url':        'ICS URL адрес',
+    'feedConfig.color':      'Цвят',
+    'feedConfig.remove':     'Премахни',
+    'feedConfig.idPlaceholder':   'напр. airbnb',
+    'feedConfig.namePlaceholder': 'напр. Airbnb',
+    'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
     'nav.account':           'Акаунт',
     'account.profile':       'Профил',
     'account.session':       'Сесия',
@@ -364,6 +402,7 @@ function navigateTo(page) {
   if (page === 'logs')        loadLogsPage();
   if (page === 'subscribe')   loadSubscribePage();
   if (page === 'link-config') loadLinkConfigPage();
+  if (page === 'feed-config') loadFeedConfigPage();
   if (page === 'account')     loadAccountPage();
   if (page === 'settings')    { initTimezone(); initPush(); }
 }
@@ -1091,6 +1130,125 @@ async function applyDynamicLinks() {
       });
     }
   } catch (e) { /* silent */ }
+}
+
+// ─── Feed Config (admin) ─────────────────────────────────────────────────────
+
+function createFeedRow(feed = {}) {
+  const row = document.createElement('div');
+  row.className = 'feed-config-row settings-card';
+  row.innerHTML = `
+    <div class="feed-row-fields">
+      <div class="feed-field">
+        <label class="settings-label-title">${t('feedConfig.id')}</label>
+        <input type="text" class="config-input feed-id" value="${feed.id || ''}" placeholder="${t('feedConfig.idPlaceholder')}" />
+      </div>
+      <div class="feed-field">
+        <label class="settings-label-title">${t('feedConfig.name')}</label>
+        <input type="text" class="config-input feed-name" value="${feed.name || ''}" placeholder="${t('feedConfig.namePlaceholder')}" />
+      </div>
+      <div class="feed-field feed-field-url">
+        <label class="settings-label-title">${t('feedConfig.url')}</label>
+        <input type="url" class="config-input feed-url" value="${feed.url || ''}" placeholder="${t('feedConfig.urlPlaceholder')}" />
+      </div>
+      <div class="feed-field feed-field-color">
+        <label class="settings-label-title">${t('feedConfig.color')}</label>
+        <input type="color" class="feed-color-input" value="${feed.color || '#2C7BE5'}" />
+      </div>
+      <div class="feed-field feed-field-remove">
+        <button type="button" class="btn-feed-remove" title="${t('feedConfig.remove')}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+  row.querySelector('.btn-feed-remove').addEventListener('click', () => row.remove());
+  return row;
+}
+
+async function loadFeedConfigPage() {
+  if (!currentUser || currentUser.role !== 'admin') return;
+
+  const listEl = document.getElementById('feed-config-list');
+  const statusEl = document.getElementById('feed-config-status');
+  listEl.innerHTML = '';
+
+  // Load current feeds
+  try {
+    const res = await fetch('/api/admin/feeds');
+    if (res.ok) {
+      const feeds = await res.json();
+      for (const feed of feeds) {
+        listEl.appendChild(createFeedRow(feed));
+      }
+    }
+  } catch (e) { console.error('Failed to load feeds', e); }
+
+  // Add Feed button
+  const addBtn = document.getElementById('feed-add-btn');
+  const newAddBtn = addBtn.cloneNode(true);
+  addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+  newAddBtn.addEventListener('click', () => {
+    listEl.appendChild(createFeedRow());
+  });
+
+  // Save button
+  const saveBtn = document.getElementById('feed-config-save');
+  const newSaveBtn = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+  newSaveBtn.addEventListener('click', async () => {
+    newSaveBtn.disabled = true;
+    statusEl.textContent = t('feedConfig.saving');
+    statusEl.className = 'link-config-status';
+    try {
+      const rows = listEl.querySelectorAll('.feed-config-row');
+      const feeds = [];
+      for (const row of rows) {
+        const id = row.querySelector('.feed-id').value.trim();
+        const name = row.querySelector('.feed-name').value.trim();
+        const url = row.querySelector('.feed-url').value.trim();
+        const color = row.querySelector('.feed-color-input').value;
+        if (id && name && url) feeds.push({ id, name, url, color });
+      }
+      const res = await fetch('/api/admin/feeds', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feeds }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      statusEl.textContent = t('feedConfig.saved');
+      statusEl.className = 'link-config-status link-config-success';
+    } catch (e) {
+      statusEl.textContent = t('feedConfig.error');
+      statusEl.className = 'link-config-status link-config-error';
+    }
+    newSaveBtn.disabled = false;
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  });
+
+  // Sync Now button
+  const syncBtn = document.getElementById('feed-sync-btn');
+  const newSyncBtn = syncBtn.cloneNode(true);
+  syncBtn.parentNode.replaceChild(newSyncBtn, syncBtn);
+
+  newSyncBtn.addEventListener('click', async () => {
+    newSyncBtn.disabled = true;
+    statusEl.textContent = t('feedConfig.syncing');
+    statusEl.className = 'link-config-status';
+    try {
+      const res = await fetch('/api/sync', { method: 'POST' });
+      if (!res.ok) throw new Error('Sync failed');
+      const data = await res.json();
+      statusEl.textContent = t('feedConfig.synced') + ` (${data.totalEvents} events)`;
+      statusEl.className = 'link-config-status link-config-success';
+    } catch (e) {
+      statusEl.textContent = t('feedConfig.syncError');
+      statusEl.className = 'link-config-status link-config-error';
+    }
+    newSyncBtn.disabled = false;
+    setTimeout(() => { statusEl.textContent = ''; }, 5000);
+  });
 }
 
 // ─── Account ─────────────────────────────────────────────────────────────────

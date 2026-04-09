@@ -103,6 +103,12 @@
             <span data-i18n="nav.linkConfig">Link Settings</span>
           </a>
         </li>
+        <li class="nav-admin-only">
+          <a class="nav-item" data-page="feed-config" href="#">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+            <span data-i18n="nav.feedConfig">ICS Feeds</span>
+          </a>
+        </li>
         <li class="nav-divider"></li>
         <li>
           <a class="nav-item" data-page="subscribe" href="#">
@@ -471,6 +477,39 @@
               <span data-i18n="linkConfig.save">Save Links</span>
             </button>
             <span id="link-config-status" class="link-config-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ICS Feed Config page (admin-only) ─────────────────────────── -->
+      <div id="page-feed-config" class="page">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav.feedConfig">ICS Feeds</h1>
+        </div>
+        <div class="feed-config-form" id="feed-config-form">
+          <p class="feed-config-desc" data-i18n="feedConfig.desc">Configure the iCal (ICS) feeds to sync bookings from external platforms.</p>
+
+          <div id="feed-config-list">
+            <!-- Feed rows are generated dynamically by JS -->
+          </div>
+
+          <div class="feed-config-actions" style="margin-top:16px">
+            <button class="btn-sync" id="feed-add-btn" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span data-i18n="feedConfig.addFeed">Add Feed</span>
+            </button>
+          </div>
+
+          <div class="link-config-actions" style="margin-top:20px">
+            <button class="btn-sync" id="feed-config-save">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span data-i18n="feedConfig.save">Save Feeds</span>
+            </button>
+            <button class="btn-sync btn-secondary" id="feed-sync-btn" type="button" style="margin-left:8px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span data-i18n="feedConfig.syncNow">Sync Now</span>
+            </button>
+            <span id="feed-config-status" class="link-config-status"></span>
           </div>
         </div>
       </div>

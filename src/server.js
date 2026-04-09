@@ -11,7 +11,7 @@ const session = require('express-session');
 const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const cron = require('node-cron');
-const { syncAllFeeds, getEvents, getStatus, getFeeds } = require('./calendarService');
+const { syncAllFeeds, getEvents, getStatus, getFeeds, setFeeds } = require('./calendarService');
 const db = require('./db');
 
 const app = express();
@@ -211,6 +211,22 @@ app.put('/api/admin/config/:key', requireAdmin, (req, res) => {
 app.delete('/api/admin/config/:key', requireAdmin, (req, res) => {
   db.deleteConfig(req.params.key);
   db.addLog(req.user.id, req.user.name, 'Deleted config', req.params.key);
+  res.json({ ok: true });
+});
+
+// ─── Admin: ICS feeds management ─────────────────────────────────────────────
+app.get('/api/admin/feeds', requireAdmin, (_req, res) => {
+  res.json(getFeeds());
+});
+
+app.put('/api/admin/feeds', requireAdmin, (req, res) => {
+  const { feeds } = req.body;
+  if (!Array.isArray(feeds)) return res.status(400).json({ error: 'feeds array required' });
+  for (const f of feeds) {
+    if (!f.id || !f.name || !f.url) return res.status(400).json({ error: 'Each feed needs id, name, url' });
+  }
+  setFeeds(feeds);
+  db.addLog(req.user.id, req.user.name, 'Updated ICS feeds', `${feeds.length} feed(s) configured`);
   res.json({ ok: true });
 });
 

@@ -1,0 +1,17 @@
+name = "seasky-calendar"
+main = "worker/src/index.js"
+compatibility_date = "2024-12-01"
+
+[assets]
+directory = "./src/public"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "seasky-calendar-db"
+database_id = "1a0bbe3f-3fe2-4b0f-b79e-94ae1210f1a1"
+
+[vars]
+BASE_URL = "https://seasky-calendar.coingardenworld.workers.dev"

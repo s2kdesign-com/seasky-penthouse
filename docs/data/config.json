@@ -1,1 +1,5 @@
-{}
+{
+  "BASE_URL": "https://localhost:3443",
+  "GOOGLE_CLIENT_ID": "dummy-client-id",
+  "VAPID_PUBLIC_KEY": "BErG-vyhsHJZE8HvViKNRbkdcTWImkiIgoTrUXm3ZUBZzylUd1awiBeyV-J4oUBNX5LjzL08JcU2N7mlXVuIn78"
+}

@@ -106,6 +106,12 @@
         </li>
         <li class="nav-divider"></li>
         <li>
+          <a class="nav-item" data-page="subscribe" href="#">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span data-i18n="nav.subscribe">Subscribe</span>
+          </a>
+        </li>
+        <li>
           <a class="nav-item" data-page="links" href="#">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             <span data-i18n="nav.links">Links</span>
@@ -334,6 +340,71 @@
               <svg class="link-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Subscribe page ───────────────────────────────────────────── -->
+      <div id="page-subscribe" class="page">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav.subscribe">Subscribe</h1>
+        </div>
+        <div class="subscribe-page">
+          <div class="subscribe-hero">
+            <div class="subscribe-hero-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+            </div>
+            <h2 class="subscribe-hero-title" data-i18n="subscribe.heroTitle">Stay Updated with Our Availability</h2>
+            <p class="subscribe-hero-desc" data-i18n="subscribe.heroDesc">Subscribe to the SeaSky Penthouse calendar and see live booking availability directly in your personal calendar app. Events sync automatically every hour.</p>
+          </div>
+
+          <h3 class="settings-heading" data-i18n="subscribe.chooseApp">Choose your calendar app</h3>
+          <div class="subscribe-page-options">
+            <a id="page-sub-google" class="subscribe-option" href="#" target="_blank" rel="noopener">
+              <div class="subscribe-icon sub-google-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" fill="#fff"/><path d="M12 7v5l4 2" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/><rect x="3" y="3" width="18" height="18" rx="3" stroke="#4285F4" stroke-width="1.5" fill="none"/><path d="M7 2v3M17 2v3M3 8h18" stroke="#4285F4" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="subscribe-option-body">
+                <span class="subscribe-option-title">Google Calendar</span>
+                <span class="subscribe-option-desc" data-i18n="subscribe.googleDesc">Add as subscription feed</span>
+              </div>
+              <svg class="link-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a id="page-sub-outlook" class="subscribe-option" href="#" target="_blank" rel="noopener">
+              <div class="subscribe-icon sub-outlook-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#0078D4"/><path d="M12 8v4l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="5" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
+              </div>
+              <div class="subscribe-option-body">
+                <span class="subscribe-option-title">Outlook / Microsoft 365</span>
+                <span class="subscribe-option-desc" data-i18n="subscribe.outlookDesc">Open in Outlook calendar</span>
+              </div>
+              <svg class="link-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a id="page-sub-apple" class="subscribe-option" href="#" target="_blank" rel="noopener">
+              <div class="subscribe-icon sub-apple-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              </div>
+              <div class="subscribe-option-body">
+                <span class="subscribe-option-title">Apple Calendar</span>
+                <span class="subscribe-option-desc" data-i18n="subscribe.appleDesc">Subscribe on iPhone / Mac</span>
+              </div>
+              <svg class="link-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <h3 class="settings-heading" style="margin-top:28px" data-i18n="subscribe.orManual">Or add manually</h3>
+          <div class="subscribe-url-box">
+            <label class="subscribe-url-label" data-i18n="subscribe.icsUrlLabel">iCal feed URL</label>
+            <div class="subscribe-url-row">
+              <input type="text" class="subscribe-url-input" id="page-sub-url" readonly />
+              <button class="subscribe-url-copy" id="page-sub-copy" data-i18n="subscribe.copyUrl">Copy iCal URL</button>
+            </div>
+            <p class="subscribe-url-hint" data-i18n="subscribe.urlHint">Paste this URL into any calendar app that supports iCal subscriptions.</p>
+          </div>
+
+          <a id="page-sub-download" class="subscribe-download" href="#" download="seasky-penthouse.ics" style="margin-top:18px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="subscribe.download">Download .ics file</span>
+          </a>
         </div>
       </div>
 

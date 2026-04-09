@@ -85,8 +85,15 @@ const TRANSLATIONS = {
     'links.bookingDesc':     'Book on Booking.com',
     'links.airbnbDesc':      'Book on Airbnb',
     'btn.subscribe':         'Subscribe',
+    'nav.subscribe':         'Subscribe',
     'subscribe.title':       'Subscribe to Calendar',
     'subscribe.desc':        'Add SeaSky Penthouse bookings to your personal calendar. Events sync automatically.',
+    'subscribe.heroTitle':   'Stay Updated with Our Availability',
+    'subscribe.heroDesc':    'Subscribe to the SeaSky Penthouse calendar and see live booking availability directly in your personal calendar app. Events sync automatically every hour.',
+    'subscribe.chooseApp':   'Choose your calendar app',
+    'subscribe.orManual':    'Or add manually',
+    'subscribe.icsUrlLabel': 'iCal feed URL',
+    'subscribe.urlHint':     'Paste this URL into any calendar app that supports iCal subscriptions.',
     'subscribe.googleDesc':  'Add as subscription feed',
     'subscribe.outlookDesc': 'Open in Outlook calendar',
     'subscribe.appleDesc':   'Subscribe on iPhone / Mac',
@@ -196,8 +203,15 @@ const TRANSLATIONS = {
     'links.bookingDesc':     'Резервирайте в Booking.com',
     'links.airbnbDesc':      'Резервирайте в Airbnb',
     'btn.subscribe':         'Абониране',
+    'nav.subscribe':         'Абониране',
     'subscribe.title':       'Абониране за календар',
     'subscribe.desc':        'Добавете резервациите на SeaSky Penthouse към личния си календар. Събитията се синхронизират автоматично.',
+    'subscribe.heroTitle':   'Следете наличността ни',
+    'subscribe.heroDesc':    'Абонирайте се за календара на SeaSky Penthouse и вижте наличността на резервациите директно в личния си календар. Събитията се синхронизират автоматично всеки час.',
+    'subscribe.chooseApp':   'Изберете календарно приложение',
+    'subscribe.orManual':    'Или добавете ръчно',
+    'subscribe.icsUrlLabel': 'iCal абонаментен URL',
+    'subscribe.urlHint':     'Поставете този URL във всяко календарно приложение, което поддържа iCal абонаменти.',
     'subscribe.googleDesc':  'Добави като абонамент',
     'subscribe.outlookDesc': 'Отвори в Outlook календар',
     'subscribe.appleDesc':   'Абонирай се на iPhone / Mac',
@@ -348,6 +362,7 @@ function navigateTo(page) {
 
   if (page === 'users')       loadUsersPage();
   if (page === 'logs')        loadLogsPage();
+  if (page === 'subscribe')   loadSubscribePage();
   if (page === 'link-config') loadLinkConfigPage();
   if (page === 'account')     loadAccountPage();
   if (page === 'settings')    { initTimezone(); initPush(); }
@@ -744,34 +759,64 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
 
 // ─── Subscribe to Calendar ───────────────────────────────────────────────────
 
-function initSubscribeModal() {
-  const modal = document.getElementById('subscribe-modal');
-  const closeBtn = document.getElementById('subscribe-modal-close');
-  const subscribeBtn = document.getElementById('subscribe-btn');
+// ─── Subscribe page ──────────────────────────────────────────────────────────
 
-  // Build the ICS feed URL
+function getIcsUrls() {
   const baseUrl = IS_STATIC
     ? 'https://seasky-penthouse.coingardenworld.workers.dev'
     : window.location.origin;
   const icsUrl = `${baseUrl}/api/calendar.ics`;
   const webcalUrl = icsUrl.replace(/^https?:/, 'webcal:');
-
-  // Set the URLs on the options
-  // Google Calendar: add by URL
   const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`;
-  document.getElementById('sub-google').href = googleUrl;
-
-  // Outlook / Office 365
   const outlookUrl = `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(icsUrl)}&name=SeaSky%20Penthouse`;
+  return { icsUrl, webcalUrl, googleUrl, outlookUrl };
+}
+
+function loadSubscribePage() {
+  const { icsUrl, webcalUrl, googleUrl, outlookUrl } = getIcsUrls();
+
+  // Page options
+  const gEl = document.getElementById('page-sub-google');
+  const oEl = document.getElementById('page-sub-outlook');
+  const aEl = document.getElementById('page-sub-apple');
+  const urlInput = document.getElementById('page-sub-url');
+  const dlEl = document.getElementById('page-sub-download');
+
+  if (gEl) gEl.href = googleUrl;
+  if (oEl) oEl.href = outlookUrl;
+  if (aEl) aEl.href = webcalUrl;
+  if (urlInput) urlInput.value = icsUrl;
+  if (dlEl) dlEl.href = icsUrl;
+
+  // Copy button
+  const copyBtn = document.getElementById('page-sub-copy');
+  if (copyBtn) {
+    const newBtn = copyBtn.cloneNode(true);
+    copyBtn.parentNode.replaceChild(newBtn, copyBtn);
+    newBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(icsUrl);
+        const orig = newBtn.textContent;
+        newBtn.textContent = t('subscribe.copied');
+        newBtn.classList.add('copied');
+        setTimeout(() => { newBtn.textContent = orig; newBtn.classList.remove('copied'); }, 2000);
+      } catch (e) { /* fallback */ }
+    });
+  }
+}
+
+function initSubscribeModal() {
+  const modal = document.getElementById('subscribe-modal');
+  const closeBtn = document.getElementById('subscribe-modal-close');
+  const subscribeBtn = document.getElementById('subscribe-btn');
+
+  const { icsUrl, webcalUrl, googleUrl, outlookUrl } = getIcsUrls();
+
+  // Set the URLs on the modal options
+  document.getElementById('sub-google').href = googleUrl;
   document.getElementById('sub-outlook').href = outlookUrl;
-
-  // Apple Calendar (webcal:// protocol)
   document.getElementById('sub-apple').href = webcalUrl;
-
-  // Show ICS URL in copy button
   document.getElementById('sub-ics-url').textContent = icsUrl;
-
-  // Download link
   document.getElementById('sub-download').href = icsUrl;
 
   // Copy URL button
@@ -782,11 +827,13 @@ function initSubscribeModal() {
       const orig = titleEl.textContent;
       titleEl.textContent = t('subscribe.copied');
       setTimeout(() => { titleEl.textContent = orig; }, 2000);
-    } catch (e) { /* fallback: select text */ }
+    } catch (e) { /* fallback */ }
   });
 
-  // Open/close modal
-  subscribeBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
+  // Dashboard button navigates to subscribe page
+  subscribeBtn.addEventListener('click', () => { navigateTo('subscribe'); });
+
+  // Modal still works if opened programmatically
   closeBtn.addEventListener('click', () => { modal.classList.add('hidden'); });
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 }

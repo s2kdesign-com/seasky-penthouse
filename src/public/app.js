@@ -84,6 +84,15 @@ const TRANSLATIONS = {
     'links.officialSite':    'Official Website',
     'links.bookingDesc':     'Book on Booking.com',
     'links.airbnbDesc':      'Book on Airbnb',
+    'btn.subscribe':         'Subscribe',
+    'subscribe.title':       'Subscribe to Calendar',
+    'subscribe.desc':        'Add SeaSky Penthouse bookings to your personal calendar. Events sync automatically.',
+    'subscribe.googleDesc':  'Add as subscription feed',
+    'subscribe.outlookDesc': 'Open in Outlook calendar',
+    'subscribe.appleDesc':   'Subscribe on iPhone / Mac',
+    'subscribe.copyUrl':     'Copy iCal URL',
+    'subscribe.copied':      'Copied!',
+    'subscribe.download':    'Download .ics file',
     'nav.linkConfig':        'Link Settings',
     'linkConfig.social':     'Social & Review Links',
     'linkConfig.rental':     'Rental Platform Links',
@@ -186,6 +195,15 @@ const TRANSLATIONS = {
     'links.officialSite':    'Официален сайт',
     'links.bookingDesc':     'Резервирайте в Booking.com',
     'links.airbnbDesc':      'Резервирайте в Airbnb',
+    'btn.subscribe':         'Абониране',
+    'subscribe.title':       'Абониране за календар',
+    'subscribe.desc':        'Добавете резервациите на SeaSky Penthouse към личния си календар. Събитията се синхронизират автоматично.',
+    'subscribe.googleDesc':  'Добави като абонамент',
+    'subscribe.outlookDesc': 'Отвори в Outlook календар',
+    'subscribe.appleDesc':   'Абонирай се на iPhone / Mac',
+    'subscribe.copyUrl':     'Копирай iCal URL',
+    'subscribe.copied':      'Копирано!',
+    'subscribe.download':    'Изтегли .ics файл',
     'nav.linkConfig':        'Настройка на линкове',
     'linkConfig.social':     'Социални мрежи и отзиви',
     'linkConfig.rental':     'Платформи за наемане',
@@ -723,6 +741,55 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
     btn.innerHTML = '&#8635; Sync now';
   }
 });
+
+// ─── Subscribe to Calendar ───────────────────────────────────────────────────
+
+function initSubscribeModal() {
+  const modal = document.getElementById('subscribe-modal');
+  const closeBtn = document.getElementById('subscribe-modal-close');
+  const subscribeBtn = document.getElementById('subscribe-btn');
+
+  // Build the ICS feed URL
+  const baseUrl = IS_STATIC
+    ? 'https://seasky-penthouse.coingardenworld.workers.dev'
+    : window.location.origin;
+  const icsUrl = `${baseUrl}/api/calendar.ics`;
+  const webcalUrl = icsUrl.replace(/^https?:/, 'webcal:');
+
+  // Set the URLs on the options
+  // Google Calendar: add by URL
+  const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`;
+  document.getElementById('sub-google').href = googleUrl;
+
+  // Outlook / Office 365
+  const outlookUrl = `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(icsUrl)}&name=SeaSky%20Penthouse`;
+  document.getElementById('sub-outlook').href = outlookUrl;
+
+  // Apple Calendar (webcal:// protocol)
+  document.getElementById('sub-apple').href = webcalUrl;
+
+  // Show ICS URL in copy button
+  document.getElementById('sub-ics-url').textContent = icsUrl;
+
+  // Download link
+  document.getElementById('sub-download').href = icsUrl;
+
+  // Copy URL button
+  document.getElementById('sub-copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(icsUrl);
+      const titleEl = document.getElementById('sub-copy').querySelector('.subscribe-option-title');
+      const orig = titleEl.textContent;
+      titleEl.textContent = t('subscribe.copied');
+      setTimeout(() => { titleEl.textContent = orig; }, 2000);
+    } catch (e) { /* fallback: select text */ }
+  });
+
+  // Open/close modal
+  subscribeBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
+  closeBtn.addEventListener('click', () => { modal.classList.add('hidden'); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+}
 
 // ─── Event modal ──────────────────────────────────────────────────────────────
 
@@ -1313,6 +1380,8 @@ async function init() {
   applyTranslations();
   initSettings();
   initPush();
+
+  initSubscribeModal();
 
   await loadAll();
   setInterval(loadAll, 60 * 60 * 1000);

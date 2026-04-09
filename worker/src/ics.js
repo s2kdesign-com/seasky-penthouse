@@ -212,6 +212,53 @@ export async function getEvents(d1) {
   });
 }
 
+export async function generateICS(d1) {
+  const events = await getEvents(d1);
+  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//SeaSky Apartments//Booking Dashboard//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:SeaSky Penthouse Bookings',
+    'X-WR-TIMEZONE:Europe/Sofia',
+  ];
+
+  for (const ev of events) {
+    const uid = ev.id.replace(/[^a-zA-Z0-9_-]/g, '_') + '@seasky-penthouse';
+    const dtstart = toICSDate(ev.start || ev.rawStart);
+    const dtend = toICSDate(ev.end || ev.rawEnd);
+    const summary = (ev.title || 'Booked').replace(/[,;\\]/g, '\\$&');
+    const desc = (ev.description || '').replace(/\n/g, '\\n').replace(/[,;\\]/g, '\\$&');
+    const source = ev.sourceName || ev.source || '';
+
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    lines.push(`DTSTART:${dtstart}`);
+    lines.push(`DTEND:${dtend}`);
+    lines.push(`SUMMARY:${summary}`);
+    if (desc) lines.push(`DESCRIPTION:${desc}`);
+    if (source) lines.push(`CATEGORIES:${source}`);
+    lines.push(`STATUS:CONFIRMED`);
+    lines.push('END:VEVENT');
+  }
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function toICSDate(dateStr) {
+  if (!dateStr) return '';
+  // Handle both ISO strings and local datetime strings
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const iso = d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  return iso; // e.g. 20260409T150000Z
+}
+
 export async function getStatus(d1) {
   const lastSync = await db.getLastSync(d1);
   const feeds = await db.getSyncStatus(d1);

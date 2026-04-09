@@ -5,7 +5,7 @@
 
 import * as db from './db.js';
 import * as auth from './auth.js';
-import { syncAllFeeds, getEvents, getStatus, FEEDS } from './ics.js';
+import { syncAllFeeds, getEvents, getStatus, generateICS, FEEDS } from './ics.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -67,6 +67,18 @@ async function handleRequest(request, env) {
   if (path === '/api/status' && method === 'GET') {
     const status = await getStatus(env.DB);
     return json(status);
+  }
+
+  if (path === '/api/calendar.ics' && method === 'GET') {
+    const icsContent = await generateICS(env.DB);
+    return new Response(icsContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="seasky-penthouse.ics"',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
   }
 
   if (path === '/api/feeds' && method === 'GET') {

@@ -608,6 +608,59 @@ h1, h2, h3 {
 .modal-row { display: flex; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
 .modal-row strong { color: var(--text); min-width: 72px; }
 
+/* ─── Subscribe button & modal ─────────────────────────────────────────────── */
+.btn-subscribe {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid var(--accent);
+  color: var(--accent); padding: 7px 14px;
+  border-radius: var(--radius); font-size: 0.82rem; font-weight: 500;
+  font-family: 'Jost', sans-serif; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-subscribe:hover { background: var(--accent); color: var(--accent-text); }
+.btn-subscribe svg { flex-shrink: 0; }
+
+.subscribe-modal-content { max-width: 440px; }
+.subscribe-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+.subscribe-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.4; }
+
+.subscribe-options { display: flex; flex-direction: column; gap: 8px; }
+.subscribe-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg);
+  text-decoration: none; color: var(--text);
+  cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+  font-family: 'Jost', sans-serif; font-size: inherit;
+}
+.subscribe-option:hover { border-color: var(--accent); transform: translateX(3px); }
+
+.subscribe-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sub-google-icon { background: #fff; border: 1px solid #e0e0e0; }
+.sub-outlook-icon { background: #0078D4; }
+.sub-apple-icon { background: var(--surface2); border: 1px solid var(--border); }
+.sub-copy-icon { background: var(--surface2); border: 1px solid var(--border); }
+
+.subscribe-option-body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.subscribe-option-title { font-size: 0.88rem; font-weight: 600; }
+.subscribe-option-desc { font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.subscribe-copy-btn { border-style: dashed; }
+
+.subscribe-download {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px; padding: 8px 16px;
+  border-radius: var(--radius); font-size: 0.82rem;
+  color: var(--text-muted); text-decoration: none;
+  border: 1px solid var(--border); background: transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.subscribe-download:hover { color: var(--accent); border-color: var(--accent); }
+
 /* ─── Multi-month year view ─────────────────────────────────────────────────── */
 .fc .fc-multimonth-title { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
 .fc .fc-multimonth-daygrid-table { font-size: 0.78rem; }

@@ -832,6 +832,133 @@ h1, h2, h3 {
   border-color: #e07070;
 }
 
+/* ─── Links page ────────────────────────────────────────────────────────────── */
+.links-section { max-width: 640px; }
+
+.links-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.18s, background 0.18s, transform 0.12s;
+}
+.link-card:hover {
+  border-color: var(--accent);
+  background: var(--surface2);
+  transform: translateX(4px);
+}
+
+.link-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.link-card-facebook { background: #1877F2; color: #fff; }
+.link-card-instagram { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+.link-card-google { background: var(--surface2); border: 1px solid var(--border); }
+.link-card-official { background: var(--surface2); border: 1px solid var(--border); }
+.link-card-booking { background: #003580; color: #fff; }
+.link-card-airbnb { background: #FF5A5F; color: #fff; }
+
+.link-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.link-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.link-card-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.link-card-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  opacity: 0.4;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.link-card:hover .link-card-arrow {
+  opacity: 1;
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────────────── */
+.footer {
+  background: var(--header-bg);
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  transition: color 0.18s, background 0.18s;
+}
+.footer-social-link:hover {
+  color: var(--accent);
+  background: rgba(255,255,255,0.06);
+}
+
+.footer-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 6px;
+}
+
+.footer-copy {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  white-space: nowrap;
+}
+
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -916,6 +1043,15 @@ h1, h2, h3 {
   .account-card { padding: 20px 16px; }
   .account-detail-row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; }
   .account-danger .settings-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Links page mobile */
+  .links-section { max-width: 100%; }
+  .link-card { padding: 12px 14px; gap: 12px; }
+  .link-card-icon { width: 38px; height: 38px; }
+
+  /* Footer mobile */
+  .footer-inner { flex-direction: column; gap: 10px; }
+  .footer-copy { text-align: center; }
 
   /* Edit form */
   .edit-row { flex-direction: column; align-items: flex-start; gap: 4px; }

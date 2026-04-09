@@ -1104,7 +1104,6 @@ h1, h2, h3 {
 
   /* Header */
   .logo { font-size: 1rem; }
-  .header-logo { display: none; }
   .user-name { display: none; }
   .role-badge { display: none; }
   .btn-sync { padding: 5px 10px; font-size: 0.78rem; }

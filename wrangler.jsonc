@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "seasky-calendar",
+	"name": "seasky-penthouse",
 	"main": "worker/src/index.js",
 	"compatibility_date": "2025-04-30",
 	"observability": {
@@ -20,6 +20,6 @@
 		"directory": "./src/public/"
 	},
 	"vars": {
-		"BASE_URL": "https://seasky-calendar.coingardenworld.workers.dev"
+		"BASE_URL": "https://seasky-penthouse.coingardenworld.workers.dev"
 	}
 }

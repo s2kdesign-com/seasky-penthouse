@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(npm install:*)",
+      "Bash(npm start:*)",
+      "Bash(mkdir -p E:/claude/certs)",
+      "Bash(openssl req:*)",
+      "Bash(MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:2048 -keyout localhost+2-key.pem -out localhost+2.pem -days 365 -nodes -subj \"/CN=localhost\")",
+      "Bash(node src/server.js)",
+      "Bash(curl -sk https://localhost:3443/api/status)",
+      "Bash(taskkill //PID 46068 //F)",
+      "Bash(curl -sk https://localhost:3443/api/config)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 42492 //F)",
+      "Bash(rm -f E:/claude/data/seasky.db E:/claude/data/seasky.db-shm E:/claude/data/seasky.db-wal)",
+      "Bash(taskkill //PID 37268 //F)",
+      "Bash(curl -sk https://localhost:3443/api/timezones)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} timezones'\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>console.log\\(JSON.parse\\(d\\).length+' timezones'\\)\\)\")",
+      "Bash(npm run:*)",
+      "Bash(taskkill //PID 9876 //F)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const tz=JSON.parse\\(d\\); console.log\\(tz.length+' timezones'\\); console.log\\('First:', JSON.stringify\\(tz[0]\\)\\); console.log\\('Last:', JSON.stringify\\(tz[tz.length-1]\\)\\); const sofia=tz.find\\(t=>t.tz==='Europe/Sofia'\\); console.log\\('Sofia:', JSON.stringify\\(sofia\\)\\);}\\)\")",
+      "Bash(taskkill //PID 40500 //F)",
+      "Bash(curl -sk https://localhost:3443/ -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -sk https://localhost:3443/api/status -o /dev/null -w \"%{http_code}\")",
+      "Bash(ls -lah E:/claude/*.sql)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/s2kdesign-com/seasky-penthouse/main/worker/src/auth.js\" -o E:/claude/worker/src/auth.js)",
+      "Read(//e//**)",
+      "Bash(rm -rf E:/claude/worker/src/auth.js E:/claude/worker/src/db.js)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/s2kdesign-com/seasky-penthouse/main/worker/src/db.js\" -o E:/claude/worker/src/db.js)",
+      "Bash(taskkill //PID 25144 //F)",
+      "Bash(curl -sk -X POST https://localhost:3443/api/inquiries -H \"Content-Type: application/json\" -d '{\"check_in\":\"2026-04-20\",\"check_out\":\"2026-04-25\",\"guests\":2,\"name\":\"Test User\",\"email\":\"test@example.com\",\"phone\":\"+359888123456\",\"comment\":\"Test booking\"}')",
+      "Bash(taskkill //PID 40024 //F)",
+      "Bash(rm -rf node_modules)",
+      "Bash(curl -sk https://localhost:3443/api/me)",
+      "Bash(taskkill //PID 33328 //F)"
+    ]
+  }
+}

@@ -617,6 +617,8 @@ h1, h2, h3 {
 .inquiry-date-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; text-align: center; }
 .inquiry-date-label { display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
 .inquiry-date-value { display: block; font-size: 1rem; font-weight: 600; margin-top: 4px; }
+.inquiry-date-input { display: block; width: 100%; margin-top: 4px; padding: 4px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.95rem; font-weight: 600; text-align: center; font-family: inherit; cursor: pointer; }
+.inquiry-date-input::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
 .inquiry-arrow { font-size: 1.2rem; color: var(--text-muted); }
 .inquiry-nights { background: var(--accent); color: #000; border-radius: 20px; padding: 4px 12px; font-size: 0.85rem; font-weight: 600; }
 .inquiry-form { text-align: left; margin-top: 16px; }

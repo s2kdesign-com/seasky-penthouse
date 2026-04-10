@@ -151,6 +151,9 @@ const TRANSLATIONS = {
     'reservations.filterAll':        'All',
     'reservations.filterInquiries':  'Inquiries',
     'reservations.filterFeeds':      'Feeds',
+    'reservations.now':              'Now',
+    'reservations.reservation':      'reservation',
+    'reservations.reservations':     'reservations',
     'nav.account':           'Account',
     'account.profile':       'Profile',
     'account.session':       'Session',
@@ -325,6 +328,9 @@ const TRANSLATIONS = {
     'reservations.filterAll':        'Всички',
     'reservations.filterInquiries':  'Запитвания',
     'reservations.filterFeeds':      'Емисии',
+    'reservations.now':              'Сега',
+    'reservations.reservation':      'резервация',
+    'reservations.reservations':     'резервации',
     'nav.account':           'Акаунт',
     'account.profile':       'Профил',
     'account.session':       'Сесия',
@@ -1296,35 +1302,46 @@ async function loadReservationsPage() {
   const inquiries = await inqRes.json();
   const events = eventsRes || [];
 
-  // Build unified list: inquiries + ical events
+  // Build unified list
   const unified = [];
-
   for (const inq of inquiries) {
-    unified.push({
-      type: 'inquiry',
-      sortDate: inq.check_in,
-      data: inq,
-    });
+    unified.push({ type: 'inquiry', sortDate: inq.check_in, data: inq });
   }
-
   for (const ev of events) {
-    const startDate = ev.start || ev.rawStart;
-    unified.push({
-      type: 'ical',
-      sortDate: startDate,
-      data: ev,
-    });
+    unified.push({ type: 'ical', sortDate: ev.start || ev.rawStart, data: ev });
   }
-
-  // Sort by check-in / start date descending (newest first)
-  unified.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
+  unified.sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate));
 
   if (!unified.length) {
     container.innerHTML = `<p class="loading-text">${t('reservations.noData')}</p>`;
     return;
   }
 
-  // Filter tabs
+  // Group by month
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const monthGroups = new Map();
+  for (const item of unified) {
+    const d = new Date(item.sortDate);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!monthGroups.has(key)) monthGroups.set(key, []);
+    monthGroups.get(key).push(item);
+  }
+
+  // Order: current month first, then future ascending, then past descending
+  const allKeys = [...monthGroups.keys()];
+  const futureKeys = allKeys.filter(k => k >= currentMonthKey).sort();
+  const pastKeys = allKeys.filter(k => k < currentMonthKey).sort().reverse();
+  const orderedKeys = [...futureKeys, ...pastKeys];
+
+  const fmtMonthLabel = (key) => {
+    const [y, m] = key.split('-');
+    return new Date(parseInt(y), parseInt(m) - 1, 1)
+      .toLocaleDateString(currentLang === 'bg' ? 'bg-BG' : 'en-US', { month: 'long', year: 'numeric' });
+  };
+  const monthRelation = (key) => key === currentMonthKey ? 'current' : key > currentMonthKey ? 'future' : 'past';
+
+  // Filter pills
   const filterBar = `
     <div class="reservation-filters">
       <button class="reservation-filter active" data-filter="all">${t('reservations.filterAll')} (${unified.length})</button>
@@ -1333,37 +1350,41 @@ async function loadReservationsPage() {
     </div>
   `;
 
+  // Render card
   const renderCard = (item) => {
     if (item.type === 'inquiry') {
       const inq = item.data;
       const nights = nightCount(inq.check_in, inq.check_out);
       const statusCls = inq.status === 'confirmed' ? 'status-confirmed' : inq.status === 'declined' ? 'status-declined' : 'status-pending';
       return `
-        <div class="reservation-card ${statusCls}" data-id="${inq.id}" data-type="inquiry">
-          <div class="reservation-header">
-            <div class="reservation-dates">
-              <span class="reservation-date">${fmtDateShort(inq.check_in)}</span>
-              <span class="reservation-arrow">→</span>
-              <span class="reservation-date">${fmtDateShort(inq.check_out)}</span>
-              ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+        <div class="tl-item" data-type="inquiry">
+          <div class="tl-dot tl-dot-inquiry"></div>
+          <div class="reservation-card ${statusCls}" data-id="${inq.id}" data-type="inquiry">
+            <div class="reservation-header">
+              <div class="reservation-dates">
+                <span class="reservation-day">${new Date(inq.check_in).getDate()}</span>
+                <span class="reservation-date">${fmtDateShort(inq.check_in)}</span>
+                <span class="reservation-arrow">&rarr;</span>
+                <span class="reservation-date">${fmtDateShort(inq.check_out)}</span>
+                ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+              </div>
+              <div class="reservation-badges">
+                <span class="reservation-source-badge source-inquiry">${t('reservations.filterInquiries')}</span>
+                <select class="reservation-status-select" data-id="${inq.id}">
+                  <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
+                  <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
+                  <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
+                </select>
+              </div>
             </div>
-            <div class="reservation-badges">
-              <span class="reservation-source-badge source-inquiry">${t('reservations.filterInquiries')}</span>
-              <select class="reservation-status-select" data-id="${inq.id}">
-                <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
-                <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
-                <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
-              </select>
+            <div class="reservation-details">
+              <div class="reservation-detail"><strong>${t('reservations.guests')}:</strong> ${inq.guests}</div>
+              <div class="reservation-detail"><strong>${t('reservations.contact')}:</strong> ${escHtml(inq.name || '—')} &middot; ${escHtml(inq.email)}${inq.phone ? ` &middot; ${escHtml(inq.phone)}` : ''}</div>
+              ${inq.comment ? `<div class="reservation-detail"><strong>${t('reservations.comment')}:</strong> ${escHtml(inq.comment)}</div>` : ''}
+              <div class="reservation-detail reservation-meta">${t('reservations.date')}: ${fmtDate(inq.created_at)}</div>
             </div>
           </div>
-          <div class="reservation-details">
-            <div class="reservation-detail"><strong>${t('reservations.guests')}:</strong> ${inq.guests}</div>
-            <div class="reservation-detail"><strong>${t('reservations.contact')}:</strong> ${escHtml(inq.name || '—')} · ${escHtml(inq.email)}${inq.phone ? ` · ${escHtml(inq.phone)}` : ''}</div>
-            ${inq.comment ? `<div class="reservation-detail"><strong>${t('reservations.comment')}:</strong> ${escHtml(inq.comment)}</div>` : ''}
-            <div class="reservation-detail reservation-meta">${t('reservations.date')}: ${fmtDate(inq.created_at)}</div>
-          </div>
-        </div>
-      `;
+        </div>`;
     } else {
       const ev = item.data;
       const startDate = ev.start || ev.rawStart;
@@ -1371,32 +1392,71 @@ async function loadReservationsPage() {
       const nights = nightCount(startDate, endDate);
       const sourceColor = ev.color || 'var(--text-muted)';
       return `
-        <div class="reservation-card status-ical" data-type="ical" style="border-left-color: ${sourceColor}">
-          <div class="reservation-header">
-            <div class="reservation-dates">
-              <span class="reservation-date">${fmtDateShort(startDate)}</span>
-              <span class="reservation-arrow">→</span>
-              <span class="reservation-date">${fmtDateShort(endDate)}</span>
-              ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+        <div class="tl-item" data-type="ical">
+          <div class="tl-dot" style="background:${sourceColor}"></div>
+          <div class="reservation-card status-ical" data-type="ical" style="border-left-color:${sourceColor}">
+            <div class="reservation-header">
+              <div class="reservation-dates">
+                <span class="reservation-day">${new Date(startDate).getDate()}</span>
+                <span class="reservation-date">${fmtDateShort(startDate)}</span>
+                <span class="reservation-arrow">&rarr;</span>
+                <span class="reservation-date">${fmtDateShort(endDate)}</span>
+                ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+              </div>
+              <div class="reservation-badges">
+                <span class="reservation-source-badge" style="background:${sourceColor};color:#000">${escHtml(ev.sourceName || ev.source)}</span>
+              </div>
             </div>
-            <div class="reservation-badges">
-              <span class="reservation-source-badge" style="background: ${sourceColor}; color: #000">${escHtml(ev.sourceName || ev.source)}</span>
+            <div class="reservation-details">
+              <div class="reservation-detail"><strong>${escHtml(ev.title)}</strong></div>
+              ${ev.description ? `<div class="reservation-detail">${escHtml(ev.description).substring(0, 200)}</div>` : ''}
             </div>
           </div>
-          <div class="reservation-details">
-            <div class="reservation-detail"><strong>${escHtml(ev.title)}</strong></div>
-            ${ev.description ? `<div class="reservation-detail">${escHtml(ev.description).substring(0, 200)}</div>` : ''}
-          </div>
-        </div>
-      `;
+        </div>`;
     }
   };
 
-  container.innerHTML = filterBar + `
-    <div class="reservations-list">
-      ${unified.map(renderCard).join('')}
-    </div>
-  `;
+  // Render timeline grouped by month
+  const timelineHTML = orderedKeys.map(key => {
+    const items = monthGroups.get(key);
+    const rel = monthRelation(key);
+    const countInq = items.filter(i => i.type === 'inquiry').length;
+    const countFeed = items.filter(i => i.type === 'ical').length;
+    const isCollapsed = rel === 'past';
+    return `
+      <div class="tl-month ${rel === 'current' ? 'tl-month-current' : ''} ${rel === 'past' ? 'tl-month-past' : ''}" data-month="${key}">
+        <div class="tl-month-header" ${isCollapsed ? 'data-collapsed="true"' : ''}>
+          <div class="tl-month-label">
+            <span class="tl-month-name">${fmtMonthLabel(key)}</span>
+            ${rel === 'current' ? `<span class="tl-month-now">${t('reservations.now')}</span>` : ''}
+          </div>
+          <div class="tl-month-meta">
+            <span class="tl-month-count">${items.length} ${items.length === 1 ? t('reservations.reservation') : t('reservations.reservations')}</span>
+            ${countInq ? `<span class="tl-meta-pill tl-meta-inquiry">${countInq} ${t('reservations.filterInquiries').toLowerCase()}</span>` : ''}
+            ${countFeed ? `<span class="tl-meta-pill tl-meta-feed">${countFeed} ${t('reservations.filterFeeds').toLowerCase()}</span>` : ''}
+            <span class="tl-collapse-icon">${isCollapsed ? '&#9654;' : '&#9660;'}</span>
+          </div>
+        </div>
+        <div class="tl-month-body" ${isCollapsed ? 'style="display:none"' : ''}>
+          ${items.map(renderCard).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = filterBar + `<div class="reservations-timeline">${timelineHTML}</div>`;
+
+  // Collapse / expand month sections
+  container.querySelectorAll('.tl-month-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('.reservation-status-select')) return;
+      const body = header.nextElementSibling;
+      const icon = header.querySelector('.tl-collapse-icon');
+      const collapsed = body.style.display === 'none';
+      body.style.display = collapsed ? '' : 'none';
+      icon.innerHTML = collapsed ? '&#9660;' : '&#9654;';
+      header.dataset.collapsed = collapsed ? '' : 'true';
+    });
+  });
 
   // Filter tab click handlers
   container.querySelectorAll('.reservation-filter').forEach(btn => {
@@ -1404,19 +1464,20 @@ async function loadReservationsPage() {
       container.querySelectorAll('.reservation-filter').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.dataset.filter;
-      container.querySelectorAll('.reservation-card').forEach(card => {
-        if (filter === 'all' || card.dataset.type === filter) {
-          card.style.display = '';
-        } else {
-          card.style.display = 'none';
-        }
+      container.querySelectorAll('.tl-item').forEach(item => {
+        item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
+      });
+      container.querySelectorAll('.tl-month').forEach(month => {
+        const visible = month.querySelectorAll(`.tl-item${filter === 'all' ? '' : `[data-type="${filter}"]`}`);
+        month.style.display = visible.length ? '' : 'none';
       });
     });
   });
 
   // Handle inquiry status change
   container.querySelectorAll('.reservation-status-select').forEach(sel => {
-    sel.addEventListener('change', async () => {
+    sel.addEventListener('change', async (e) => {
+      e.stopPropagation();
       const id = sel.dataset.id;
       const status = sel.value;
       const card = sel.closest('.reservation-card');

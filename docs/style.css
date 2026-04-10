@@ -189,6 +189,8 @@ h1, h2, h3 {
 .nav-admin-only.visible { display: block; }
 .nav-auth-only { display: none; }
 .nav-auth-only.visible { display: block; }
+.auth-only { display: none !important; }
+.auth-only.visible { display: grid !important; }
 
 /* ─── Main content ───────────────────────────────────────────────────────────── */
 .main {

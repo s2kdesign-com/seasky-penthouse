@@ -1496,9 +1496,10 @@ async function init() {
     renderAuth(currentUser);
   }
 
-  // Show auth-only nav items (visible to any signed-in user)
+  // Show auth-only elements (visible to any signed-in user)
   if (currentUser) {
     document.querySelectorAll('.nav-auth-only').forEach(el => el.classList.add('visible'));
+    document.querySelectorAll('.auth-only').forEach(el => el.classList.add('visible'));
   }
 
   // Show admin-only nav items

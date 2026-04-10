@@ -1,11 +1,19 @@
 {
+<<<<<<< HEAD
   "lastSync": "2026-04-10T08:31:22.874Z",
+=======
+  "lastSync": "2026-04-10T08:29:53.627Z",
+>>>>>>> e7e7780 (Hide stats cards from unauthenticated users)
   "feeds": [
     {
       "id": "airbnb",
       "name": "Airbnb",
       "status": "ok",
+<<<<<<< HEAD
       "lastChecked": "2026-04-10T08:31:22.874Z",
+=======
+      "lastChecked": "2026-04-10T08:29:53.627Z",
+>>>>>>> e7e7780 (Hide stats cards from unauthenticated users)
       "error": null,
       "count": 2
     },
@@ -13,7 +21,11 @@
       "id": "booking",
       "name": "Booking.com",
       "status": "ok",
+<<<<<<< HEAD
       "lastChecked": "2026-04-10T08:31:22.874Z",
+=======
+      "lastChecked": "2026-04-10T08:29:53.627Z",
+>>>>>>> e7e7780 (Hide stats cards from unauthenticated users)
       "error": null,
       "count": 8
     },
@@ -21,7 +33,11 @@
       "id": "official",
       "name": "Official Website",
       "status": "ok",
+<<<<<<< HEAD
       "lastChecked": "2026-04-10T08:31:22.874Z",
+=======
+      "lastChecked": "2026-04-10T08:29:53.627Z",
+>>>>>>> e7e7780 (Hide stats cards from unauthenticated users)
       "error": null,
       "count": 3
     }

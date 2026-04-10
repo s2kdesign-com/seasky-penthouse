@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.7.1",
+    "date": "2026-04-10",
+    "changes": [
+      "Changelog page now has pagination with configurable items per page (default 10)"
+    ]
+  },
+  {
     "version": "1.7.0",
     "date": "2026-04-10",
     "changes": [

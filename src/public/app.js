@@ -133,7 +133,7 @@ const TRANSLATIONS = {
     'feedConfig.namePlaceholder': 'e.g. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
     'nav.reservations':       'Reservations',
-    'reservations.noData':    'No booking inquiries yet.',
+    'reservations.noData':    'No reservations yet.',
     'reservations.checkIn':   'Check-in',
     'reservations.checkOut':  'Check-out',
     'reservations.guests':    'Guests',
@@ -144,6 +144,13 @@ const TRANSLATIONS = {
     'reservations.pending':   'Pending',
     'reservations.confirmed': 'Confirmed',
     'reservations.declined':  'Declined',
+    'reservations.sectionInquiries': 'Booking Inquiries',
+    'reservations.sectionIcal':      'Calendar Feeds',
+    'reservations.source':           'Source',
+    'reservations.allReservations':  'All Reservations',
+    'reservations.filterAll':        'All',
+    'reservations.filterInquiries':  'Inquiries',
+    'reservations.filterFeeds':      'Feeds',
     'nav.account':           'Account',
     'account.profile':       'Profile',
     'account.session':       'Session',
@@ -300,7 +307,7 @@ const TRANSLATIONS = {
     'feedConfig.namePlaceholder': 'напр. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
     'nav.reservations':       'Резервации',
-    'reservations.noData':    'Няма запитвания за резервации.',
+    'reservations.noData':    'Няма резервации.',
     'reservations.checkIn':   'Настаняване',
     'reservations.checkOut':  'Напускане',
     'reservations.guests':    'Гости',
@@ -311,6 +318,13 @@ const TRANSLATIONS = {
     'reservations.pending':   'Изчакване',
     'reservations.confirmed': 'Потвърдено',
     'reservations.declined':  'Отказано',
+    'reservations.sectionInquiries': 'Запитвания за резервации',
+    'reservations.sectionIcal':      'Календарни емисии',
+    'reservations.source':           'Източник',
+    'reservations.allReservations':  'Всички резервации',
+    'reservations.filterAll':        'Всички',
+    'reservations.filterInquiries':  'Запитвания',
+    'reservations.filterFeeds':      'Емисии',
     'nav.account':           'Акаунт',
     'account.profile':       'Профил',
     'account.session':       'Сесия',
@@ -1273,50 +1287,134 @@ async function loadReservationsPage() {
   const container = document.getElementById('reservations-content');
   container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
 
-  const res = await fetch('/api/admin/inquiries');
-  if (!res.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
-  const inquiries = await res.json();
+  // Fetch both inquiries and calendar events in parallel
+  const [inqRes, eventsRes] = await Promise.all([
+    fetch('/api/admin/inquiries'),
+    apiGet('/api/events'),
+  ]);
+  if (!inqRes.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
+  const inquiries = await inqRes.json();
+  const events = eventsRes || [];
 
-  if (!inquiries.length) {
+  // Build unified list: inquiries + ical events
+  const unified = [];
+
+  for (const inq of inquiries) {
+    unified.push({
+      type: 'inquiry',
+      sortDate: inq.check_in,
+      data: inq,
+    });
+  }
+
+  for (const ev of events) {
+    const startDate = ev.start || ev.rawStart;
+    unified.push({
+      type: 'ical',
+      sortDate: startDate,
+      data: ev,
+    });
+  }
+
+  // Sort by check-in / start date descending (newest first)
+  unified.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
+
+  if (!unified.length) {
     container.innerHTML = `<p class="loading-text">${t('reservations.noData')}</p>`;
     return;
   }
 
-  container.innerHTML = `
-    <div class="reservations-list">
-      ${inquiries.map(inq => {
-        const nights = nightCount(inq.check_in, inq.check_out);
-        const statusCls = inq.status === 'confirmed' ? 'status-confirmed' : inq.status === 'declined' ? 'status-declined' : 'status-pending';
-        return `
-          <div class="reservation-card ${statusCls}" data-id="${inq.id}">
-            <div class="reservation-header">
-              <div class="reservation-dates">
-                <span class="reservation-date">${fmtDateShort(inq.check_in)}</span>
-                <span class="reservation-arrow">→</span>
-                <span class="reservation-date">${fmtDateShort(inq.check_out)}</span>
-                ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
-              </div>
-              <div class="reservation-status-wrap">
-                <select class="reservation-status-select" data-id="${inq.id}">
-                  <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
-                  <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
-                  <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
-                </select>
-              </div>
-            </div>
-            <div class="reservation-details">
-              <div class="reservation-detail"><strong>${t('reservations.guests')}:</strong> ${inq.guests}</div>
-              <div class="reservation-detail"><strong>${t('reservations.contact')}:</strong> ${escHtml(inq.name || '—')} · ${escHtml(inq.email)}${inq.phone ? ` · ${escHtml(inq.phone)}` : ''}</div>
-              ${inq.comment ? `<div class="reservation-detail"><strong>${t('reservations.comment')}:</strong> ${escHtml(inq.comment)}</div>` : ''}
-              <div class="reservation-detail reservation-meta">${t('reservations.date')}: ${fmtDate(inq.created_at)}</div>
-            </div>
-          </div>
-        `;
-      }).join('')}
+  // Filter tabs
+  const filterBar = `
+    <div class="reservation-filters">
+      <button class="reservation-filter active" data-filter="all">${t('reservations.filterAll')} (${unified.length})</button>
+      <button class="reservation-filter" data-filter="inquiry">${t('reservations.filterInquiries')} (${inquiries.length})</button>
+      <button class="reservation-filter" data-filter="ical">${t('reservations.filterFeeds')} (${events.length})</button>
     </div>
   `;
 
-  // Handle status change
+  const renderCard = (item) => {
+    if (item.type === 'inquiry') {
+      const inq = item.data;
+      const nights = nightCount(inq.check_in, inq.check_out);
+      const statusCls = inq.status === 'confirmed' ? 'status-confirmed' : inq.status === 'declined' ? 'status-declined' : 'status-pending';
+      return `
+        <div class="reservation-card ${statusCls}" data-id="${inq.id}" data-type="inquiry">
+          <div class="reservation-header">
+            <div class="reservation-dates">
+              <span class="reservation-date">${fmtDateShort(inq.check_in)}</span>
+              <span class="reservation-arrow">→</span>
+              <span class="reservation-date">${fmtDateShort(inq.check_out)}</span>
+              ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+            </div>
+            <div class="reservation-badges">
+              <span class="reservation-source-badge source-inquiry">${t('reservations.filterInquiries')}</span>
+              <select class="reservation-status-select" data-id="${inq.id}">
+                <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
+                <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
+                <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
+              </select>
+            </div>
+          </div>
+          <div class="reservation-details">
+            <div class="reservation-detail"><strong>${t('reservations.guests')}:</strong> ${inq.guests}</div>
+            <div class="reservation-detail"><strong>${t('reservations.contact')}:</strong> ${escHtml(inq.name || '—')} · ${escHtml(inq.email)}${inq.phone ? ` · ${escHtml(inq.phone)}` : ''}</div>
+            ${inq.comment ? `<div class="reservation-detail"><strong>${t('reservations.comment')}:</strong> ${escHtml(inq.comment)}</div>` : ''}
+            <div class="reservation-detail reservation-meta">${t('reservations.date')}: ${fmtDate(inq.created_at)}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      const ev = item.data;
+      const startDate = ev.start || ev.rawStart;
+      const endDate = ev.end || ev.rawEnd;
+      const nights = nightCount(startDate, endDate);
+      const sourceColor = ev.color || 'var(--text-muted)';
+      return `
+        <div class="reservation-card status-ical" data-type="ical" style="border-left-color: ${sourceColor}">
+          <div class="reservation-header">
+            <div class="reservation-dates">
+              <span class="reservation-date">${fmtDateShort(startDate)}</span>
+              <span class="reservation-arrow">→</span>
+              <span class="reservation-date">${fmtDateShort(endDate)}</span>
+              ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+            </div>
+            <div class="reservation-badges">
+              <span class="reservation-source-badge" style="background: ${sourceColor}; color: #000">${escHtml(ev.sourceName || ev.source)}</span>
+            </div>
+          </div>
+          <div class="reservation-details">
+            <div class="reservation-detail"><strong>${escHtml(ev.title)}</strong></div>
+            ${ev.description ? `<div class="reservation-detail">${escHtml(ev.description).substring(0, 200)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  container.innerHTML = filterBar + `
+    <div class="reservations-list">
+      ${unified.map(renderCard).join('')}
+    </div>
+  `;
+
+  // Filter tab click handlers
+  container.querySelectorAll('.reservation-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.reservation-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      container.querySelectorAll('.reservation-card').forEach(card => {
+        if (filter === 'all' || card.dataset.type === filter) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Handle inquiry status change
   container.querySelectorAll('.reservation-status-select').forEach(sel => {
     sel.addEventListener('change', async () => {
       const id = sel.dataset.id;
@@ -1330,6 +1428,7 @@ async function loadReservationsPage() {
         });
         if (res.ok) {
           card.className = `reservation-card status-${status}`;
+          card.dataset.type = 'inquiry';
         }
       } catch (e) {
         console.error('Failed to update status', e);

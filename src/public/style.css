@@ -1206,6 +1206,26 @@ h1, h2, h3 {
 .reservation-detail { font-size: 0.85rem; color: var(--text-muted); }
 .reservation-detail strong { color: var(--text); }
 .reservation-meta { font-size: 0.75rem; margin-top: 4px; opacity: 0.7; }
+.reservation-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.reservation-source-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+}
+.reservation-source-badge.source-inquiry {
+  background: var(--accent); color: #000;
+}
+.reservation-filters {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.reservation-filter {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+  font-size: 0.85rem; transition: all .2s;
+}
+.reservation-filter:hover { border-color: var(--accent); color: var(--text); }
+.reservation-filter.active {
+  background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600;
+}
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }

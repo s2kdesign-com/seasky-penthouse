@@ -1182,6 +1182,31 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+/* ─── Calendar pending check-in highlight ────────────────────────────────────── */
+.fc-day-pending-checkin { background: rgba(218, 165, 32, 0.2) !important; outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ─── Reservations page ──────────────────────────────────────────────────────── */
+.reservations-list { display: flex; flex-direction: column; gap: 12px; }
+.reservation-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; border-left: 4px solid var(--text-muted);
+}
+.reservation-card.status-pending { border-left-color: var(--accent); }
+.reservation-card.status-confirmed { border-left-color: #51cf66; }
+.reservation-card.status-declined { border-left-color: #ff6b6b; }
+.reservation-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.reservation-dates { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.reservation-arrow { color: var(--text-muted); }
+.reservation-nights { background: var(--accent); color: #000; border-radius: 12px; padding: 2px 8px; font-size: 0.8rem; font-weight: 600; }
+.reservation-status-select {
+  padding: 6px 10px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 0.85rem; cursor: pointer;
+}
+.reservation-details { display: flex; flex-direction: column; gap: 4px; }
+.reservation-detail { font-size: 0.85rem; color: var(--text-muted); }
+.reservation-detail strong { color: var(--text); }
+.reservation-meta { font-size: 0.75rem; margin-top: 4px; opacity: 0.7; }
+
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1252,6 +1277,8 @@ h1, h2, h3 {
 
   /* Modal: full width */
   .modal-content { width: 96%; padding: 20px 16px; min-width: 0; }
+  .modal { align-items: flex-start; padding-top: 16px; }
+  .modal-content { max-height: 90vh; overflow-y: auto; }
 
   /* Inquiry modal mobile */
   .inquiry-dates { flex-wrap: wrap; }
@@ -1298,6 +1325,9 @@ h1, h2, h3 {
   /* Footer mobile */
   .footer-inner { flex-direction: column; gap: 10px; }
   .footer-copy { text-align: center; }
+
+  /* Reservations mobile */
+  .reservation-header { flex-direction: column; align-items: flex-start; }
 
   /* Edit form */
   .edit-row { flex-direction: column; align-items: flex-start; gap: 4px; }

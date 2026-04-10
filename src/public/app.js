@@ -132,6 +132,18 @@ const TRANSLATIONS = {
     'feedConfig.idPlaceholder':   'e.g. airbnb',
     'feedConfig.namePlaceholder': 'e.g. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
+    'nav.reservations':       'Reservations',
+    'reservations.noData':    'No booking inquiries yet.',
+    'reservations.checkIn':   'Check-in',
+    'reservations.checkOut':  'Check-out',
+    'reservations.guests':    'Guests',
+    'reservations.contact':   'Contact',
+    'reservations.comment':   'Comment',
+    'reservations.status':    'Status',
+    'reservations.date':      'Submitted',
+    'reservations.pending':   'Pending',
+    'reservations.confirmed': 'Confirmed',
+    'reservations.declined':  'Declined',
     'nav.account':           'Account',
     'account.profile':       'Profile',
     'account.session':       'Session',
@@ -287,6 +299,18 @@ const TRANSLATIONS = {
     'feedConfig.idPlaceholder':   'напр. airbnb',
     'feedConfig.namePlaceholder': 'напр. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
+    'nav.reservations':       'Резервации',
+    'reservations.noData':    'Няма запитвания за резервации.',
+    'reservations.checkIn':   'Настаняване',
+    'reservations.checkOut':  'Напускане',
+    'reservations.guests':    'Гости',
+    'reservations.contact':   'Контакт',
+    'reservations.comment':   'Коментар',
+    'reservations.status':    'Статус',
+    'reservations.date':      'Изпратено',
+    'reservations.pending':   'Изчакване',
+    'reservations.confirmed': 'Потвърдено',
+    'reservations.declined':  'Отказано',
     'nav.account':           'Акаунт',
     'account.profile':       'Профил',
     'account.session':       'Сесия',
@@ -329,6 +353,7 @@ const TRANSLATIONS = {
 
 let currentLang = localStorage.getItem('lang') || 'en';
 let userTimezone = localStorage.getItem('timezone') || '';  // '' = auto (browser default)
+let _pendingCheckIn = null;
 
 function getUserTZ() {
   return userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -439,6 +464,7 @@ function navigateTo(page) {
   if (page === 'subscribe')   loadSubscribePage();
   if (page === 'link-config') loadLinkConfigPage();
   if (page === 'feed-config') loadFeedConfigPage();
+  if (page === 'reservations') loadReservationsPage();
   if (page === 'account')     loadAccountPage();
   if (page === 'settings')    { initTimezone(); initPush(); }
 }
@@ -1111,9 +1137,15 @@ function openModal(info) {
 
 document.getElementById('modal-close').addEventListener('click', () => {
   document.getElementById('modal').classList.add('hidden');
+  _pendingCheckIn = null;
+  document.querySelectorAll('.fc-day-pending-checkin').forEach(el => el.classList.remove('fc-day-pending-checkin'));
 });
 document.getElementById('modal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.add('hidden');
+    _pendingCheckIn = null;
+    document.querySelectorAll('.fc-day-pending-checkin').forEach(el => el.classList.remove('fc-day-pending-checkin'));
+  }
 });
 
 // ─── Users page ───────────────────────────────────────────────────────────────
@@ -1234,6 +1266,77 @@ async function loadLogsPage() {
 }
 
 document.getElementById('logs-refresh').addEventListener('click', loadLogsPage);
+
+// ─── Reservations page (admin) ──────────────────────────────────────────────
+
+async function loadReservationsPage() {
+  const container = document.getElementById('reservations-content');
+  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
+
+  const res = await fetch('/api/admin/inquiries');
+  if (!res.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
+  const inquiries = await res.json();
+
+  if (!inquiries.length) {
+    container.innerHTML = `<p class="loading-text">${t('reservations.noData')}</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="reservations-list">
+      ${inquiries.map(inq => {
+        const nights = nightCount(inq.check_in, inq.check_out);
+        const statusCls = inq.status === 'confirmed' ? 'status-confirmed' : inq.status === 'declined' ? 'status-declined' : 'status-pending';
+        return `
+          <div class="reservation-card ${statusCls}" data-id="${inq.id}">
+            <div class="reservation-header">
+              <div class="reservation-dates">
+                <span class="reservation-date">${fmtDateShort(inq.check_in)}</span>
+                <span class="reservation-arrow">→</span>
+                <span class="reservation-date">${fmtDateShort(inq.check_out)}</span>
+                ${nights ? `<span class="reservation-nights">${nights}n</span>` : ''}
+              </div>
+              <div class="reservation-status-wrap">
+                <select class="reservation-status-select" data-id="${inq.id}">
+                  <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
+                  <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
+                  <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
+                </select>
+              </div>
+            </div>
+            <div class="reservation-details">
+              <div class="reservation-detail"><strong>${t('reservations.guests')}:</strong> ${inq.guests}</div>
+              <div class="reservation-detail"><strong>${t('reservations.contact')}:</strong> ${escHtml(inq.name || '—')} · ${escHtml(inq.email)}${inq.phone ? ` · ${escHtml(inq.phone)}` : ''}</div>
+              ${inq.comment ? `<div class="reservation-detail"><strong>${t('reservations.comment')}:</strong> ${escHtml(inq.comment)}</div>` : ''}
+              <div class="reservation-detail reservation-meta">${t('reservations.date')}: ${fmtDate(inq.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Handle status change
+  container.querySelectorAll('.reservation-status-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const id = sel.dataset.id;
+      const status = sel.value;
+      const card = sel.closest('.reservation-card');
+      try {
+        const res = await fetch(`/api/admin/inquiries/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        });
+        if (res.ok) {
+          card.className = `reservation-card status-${status}`;
+        }
+      } catch (e) {
+        console.error('Failed to update status', e);
+      }
+    });
+  });
+}
 
 // ─── Account page ────────────────────────────────────────────────────────────
 
@@ -1750,6 +1853,34 @@ async function init() {
     select(info) {
       openInquiryModal(info.startStr, info.endStr);
       calendar.unselect();
+    },
+    dateClick(info) {
+      // Only for future dates
+      if (info.date < new Date(new Date().setHours(0,0,0,0))) return;
+      if (!_pendingCheckIn) {
+        // First click = check-in date
+        _pendingCheckIn = info.dateStr;
+        // Highlight the selected day
+        info.dayEl.classList.add('fc-day-pending-checkin');
+      } else {
+        // Second click = check-out date
+        const start = _pendingCheckIn;
+        const end = info.dateStr;
+        // Clear pending state
+        document.querySelectorAll('.fc-day-pending-checkin').forEach(el => el.classList.remove('fc-day-pending-checkin'));
+        _pendingCheckIn = null;
+        // Ensure start < end, swap if needed
+        if (start < end) {
+          openInquiryModal(start, end);
+        } else if (end < start) {
+          openInquiryModal(end, start);
+        } else {
+          // Same day = 1 night
+          const next = new Date(start);
+          next.setDate(next.getDate() + 1);
+          openInquiryModal(start, next.toISOString().slice(0, 10));
+        }
+      }
     },
     firstDay: 1,
     nowIndicator: true,

@@ -67,6 +67,17 @@ async function handleRequest(request, env) {
     return json({ ok: true });
   }
 
+  if (path === '/api/version' && method === 'GET') {
+    // Fetch app.js hash for version detection
+    const appRes = await env.ASSETS.fetch(new Request(new URL('/app.js', url.origin)));
+    const text = await appRes.text();
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text))))
+      .map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8);
+    return new Response(JSON.stringify({ version: hash }), {
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+    });
+  }
+
   if (path === '/api/events' && method === 'GET') {
     const events = await getEvents(env.DB);
     return json(events);

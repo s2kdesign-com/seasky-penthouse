@@ -12,9 +12,15 @@ const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const cron = require('node-cron');
 const { syncAllFeeds, getEvents, getStatus, getFeeds, setFeeds } = require('./calendarService');
+const crypto = require('crypto');
 const db = require('./db');
 
 const app = express();
+
+// Compute app version hash from app.js content (changes on every deployment)
+const APP_VERSION = crypto.createHash('md5')
+  .update(fs.readFileSync(path.join(__dirname, 'public', 'app.js')))
+  .digest('hex').slice(0, 8);
 const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 const HTTP_PORT  = process.env.HTTP_PORT || 3000;
 
@@ -98,6 +104,12 @@ app.patch('/api/me/phone', (req, res) => {
   if (!req.isAuthenticated()) return res.status(403).json({ error: 'Forbidden' });
   db.updateUserPhone(req.user.id, req.body.phone);
   res.json({ ok: true });
+});
+
+// App version (for client-side update detection)
+app.get('/api/version', (_req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.json({ version: APP_VERSION });
 });
 
 // Calendar data — always public
@@ -265,6 +277,10 @@ app.post('/api/inquiries', (req, res) => {
   const userId = req.isAuthenticated() ? req.user.id : null;
   try {
     const id = db.addInquiry(check_in, check_out, guests, name, email, phone, comment, userId);
+    // Send push notification for new inquiry
+    const pushService = require('./pushService');
+    const label = `New inquiry: ${check_in} → ${check_out} (${guests} guest${guests > 1 ? 's' : ''})`;
+    pushService.sendToAll('New Booking Inquiry', label, { url: '/en/reservations' }).catch(() => {});
     res.json({ ok: true, id: Number(id) });
   } catch (err) {
     res.status(500).json({ error: err.message });

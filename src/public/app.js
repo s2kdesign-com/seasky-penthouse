@@ -144,6 +144,8 @@ const TRANSLATIONS = {
     'cronJobs.error':         'Failed',
     'cronJobs.never':         'Never',
     'cronJobs.noHistory':     'No recent runs.',
+    'update.available':       'A new version is available.',
+    'update.refresh':         'Refresh',
     'nav.reservations':       'Reservations',
     'reservations.noData':    'No reservations yet.',
     'reservations.checkIn':   'Check-in',
@@ -333,6 +335,8 @@ const TRANSLATIONS = {
     'cronJobs.error':         'Грешка',
     'cronJobs.never':         'Никога',
     'cronJobs.noHistory':     'Няма скорошни изпълнения.',
+    'update.available':       'Налична е нова версия.',
+    'update.refresh':         'Обнови',
     'nav.reservations':       'Резервации',
     'reservations.noData':    'Няма резервации.',
     'reservations.checkIn':   'Настаняване',
@@ -2284,6 +2288,30 @@ async function init() {
 
   await loadAll();
   setInterval(loadAll, 60 * 60 * 1000);
+
+  // ── Version check (detect new deployments) ──────────────────────────────
+  if (!IS_STATIC) {
+    try {
+      const vRes = await fetch('/api/version');
+      if (vRes.ok) {
+        const { version } = await vRes.json();
+        window.__appVersion = version;
+        setInterval(async () => {
+          try {
+            const r = await fetch('/api/version');
+            if (!r.ok) return;
+            const { version: latest } = await r.json();
+            if (latest !== window.__appVersion && !document.getElementById('update-banner')) {
+              const banner = document.createElement('div');
+              banner.id = 'update-banner';
+              banner.innerHTML = `<span>${t('update.available')}</span><button onclick="location.reload()">${t('update.refresh')}</button><button class="update-dismiss" onclick="this.parentNode.remove()">✕</button>`;
+              document.body.appendChild(banner);
+            }
+          } catch (_) {}
+        }, 5 * 60 * 1000); // check every 5 minutes
+      }
+    } catch (_) {}
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

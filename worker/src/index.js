@@ -68,15 +68,20 @@ async function handleRequest(request, env) {
   }
 
   if (path === '/api/version' && method === 'GET') {
-    // Fetch app.js hash for version detection
-    const appUrl = new URL('/app.js', url.origin);
-    const appRes = await env.ASSETS.fetch(appUrl.toString());
-    const text = await appRes.text();
-    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text))))
-      .map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8);
-    return new Response(JSON.stringify({ version: hash }), {
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-    });
+    try {
+      const appRes = await env.ASSETS.fetch(new Request(new URL('/app.js', url.origin)));
+      if (!appRes.ok) {
+        return json({ error: 'Failed to fetch app.js', status: appRes.status }, 500);
+      }
+      const text = await appRes.text();
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text))))
+        .map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8);
+      return new Response(JSON.stringify({ version: hash }), {
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      });
+    } catch (err) {
+      return json({ error: 'version-error', message: err.message, stack: err.stack }, 500);
+    }
   }
 
   if (path === '/api/events' && method === 'GET') {
@@ -359,8 +364,11 @@ async function handleRequest(request, env) {
   // ── SPA fallback for client-side routing (/en/*, /bg/*) ────────────────────
 
   if (/^\/(en|bg)(\/[a-z-]*)?$/.test(path)) {
-    const indexUrl = new URL('/index.html', url.origin);
-    return env.ASSETS.fetch(indexUrl.toString());
+    try {
+      return await env.ASSETS.fetch(new Request(new URL('/index.html', url.origin)));
+    } catch (err) {
+      return json({ error: 'spa-fallback-error', message: err.message, stack: err.stack }, 500);
+    }
   }
 
   // ── Fall through to static assets ──────────────────────────────────────────
@@ -384,7 +392,7 @@ export default {
       return await handleRequest(request, env);
     } catch (err) {
       console.error('Worker error:', err.stack || err.message);
-      return json({ error: 'Internal server error' }, 500);
+      return json({ error: 'Internal server error', message: err.message, stack: err.stack }, 500);
     }
   },
 

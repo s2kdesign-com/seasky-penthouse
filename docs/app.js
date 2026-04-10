@@ -214,6 +214,11 @@ const TRANSLATIONS = {
     'nav.changelog':        'Changelog',
     'changelog.noEntries':  'No changelog entries.',
     'changelog.version':    'Version',
+    'changelog.perPage':    'per page',
+    'changelog.page':       'Page',
+    'changelog.of':         'of',
+    'changelog.prev':       'Previous',
+    'changelog.next':       'Next',
   },
   bg: {
     'header.subtitle':       'Система за резервации',
@@ -422,6 +427,11 @@ const TRANSLATIONS = {
     'nav.changelog':        'Промени',
     'changelog.noEntries':  'Няма записи за промени.',
     'changelog.version':    'Версия',
+    'changelog.perPage':    'на страница',
+    'changelog.page':       'Страница',
+    'changelog.of':         'от',
+    'changelog.prev':       'Предишна',
+    'changelog.next':       'Следваща',
   },
 };
 
@@ -1556,18 +1566,44 @@ async function loadExceptionsPage() {
 
 // ─── Changelog page (public) ────────────────────────────────────────────────
 
+let _changelogData = null;
+let _changelogPage = 1;
+let _changelogPerPage = parseInt(localStorage.getItem('changelogPerPage')) || 10;
+
 async function loadChangelogPage() {
   const container = document.getElementById('changelog-content');
-  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
 
-  const data = await apiGet('/api/changelog');
-  if (!data || data.length === 0) {
+  if (!_changelogData) {
+    container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
+    _changelogData = await apiGet('/api/changelog');
+  }
+  if (!_changelogData || _changelogData.length === 0) {
     container.innerHTML = `<p class="loading-text">${t('changelog.noEntries')}</p>`;
     return;
   }
 
-  let html = '<div class="changelog-list">';
-  for (const entry of data) {
+  const total = _changelogData.length;
+  const totalPages = Math.ceil(total / _changelogPerPage);
+  if (_changelogPage > totalPages) _changelogPage = totalPages;
+  if (_changelogPage < 1) _changelogPage = 1;
+  const start = (_changelogPage - 1) * _changelogPerPage;
+  const pageItems = _changelogData.slice(start, start + _changelogPerPage);
+
+  // Per-page selector
+  let html = `<div class="changelog-controls">
+    <div class="changelog-per-page">
+      <label>${t('changelog.perPage')}:
+        <select id="changelog-per-page-select">
+          ${[5, 10, 25, 50].map(n => `<option value="${n}"${n === _changelogPerPage ? ' selected' : ''}>${n}</option>`).join('')}
+        </select>
+      </label>
+    </div>
+    <div class="changelog-page-info">${t('changelog.page')} ${_changelogPage} ${t('changelog.of')} ${totalPages}</div>
+  </div>`;
+
+  // Entries
+  html += '<div class="changelog-list">';
+  for (const entry of pageItems) {
     html += `<div class="changelog-entry">
       <div class="changelog-header">
         <span class="changelog-version">${escHtml(entry.version)}</span>
@@ -1580,7 +1616,29 @@ async function loadChangelogPage() {
     html += '</ul></div>';
   }
   html += '</div>';
+
+  // Pagination buttons
+  if (totalPages > 1) {
+    html += `<div class="changelog-pagination">
+      <button class="btn-sync btn-secondary" id="changelog-prev" ${_changelogPage <= 1 ? 'disabled' : ''}>&#8592; ${t('changelog.prev')}</button>
+      <span class="changelog-page-info">${_changelogPage} / ${totalPages}</span>
+      <button class="btn-sync btn-secondary" id="changelog-next" ${_changelogPage >= totalPages ? 'disabled' : ''}>  ${t('changelog.next')} &#8594;</button>
+    </div>`;
+  }
+
   container.innerHTML = html;
+
+  // Event listeners
+  document.getElementById('changelog-per-page-select').addEventListener('change', (e) => {
+    _changelogPerPage = parseInt(e.target.value);
+    localStorage.setItem('changelogPerPage', _changelogPerPage);
+    _changelogPage = 1;
+    loadChangelogPage();
+  });
+  const prevBtn = document.getElementById('changelog-prev');
+  const nextBtn = document.getElementById('changelog-next');
+  if (prevBtn) prevBtn.addEventListener('click', () => { _changelogPage--; loadChangelogPage(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { _changelogPage++; loadChangelogPage(); });
 }
 
 // ─── Reservations page (admin) ──────────────────────────────────────────────

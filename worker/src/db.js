@@ -64,7 +64,23 @@ export async function ensureSchema(db) {
       error       TEXT,
       event_count INTEGER DEFAULT 0
     )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS booking_inquiries (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      check_in    TEXT    NOT NULL,
+      check_out   TEXT    NOT NULL,
+      guests      INTEGER NOT NULL DEFAULT 1,
+      name        TEXT,
+      email       TEXT    NOT NULL,
+      phone       TEXT,
+      comment     TEXT,
+      user_id     INTEGER,
+      status      TEXT    NOT NULL DEFAULT 'pending',
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`),
   ]);
+
+  // Add phone column to users table (ignore if already exists)
+  try { await db.prepare('ALTER TABLE users ADD COLUMN phone TEXT').run(); } catch(e) { /* column may already exist */ }
 }
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -215,4 +231,28 @@ export async function getLastSync(db) {
 
 export async function setLastSync(db, timestamp) {
   await setConfig(db, '_LAST_SYNC', timestamp, false);
+}
+
+// ─── Booking inquiries ──────────────────────────────────────────────────────
+
+export async function addInquiry(db, checkIn, checkOut, guests, name, email, phone, comment, userId) {
+  const result = await db.prepare(
+    'INSERT INTO booking_inquiries (check_in, check_out, guests, name, email, phone, comment, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(checkIn, checkOut, guests || 1, name || null, email, phone || null, comment || null, userId || null).run();
+  return result.meta?.last_row_id;
+}
+
+export async function getInquiries(db) {
+  const { results } = await db.prepare('SELECT * FROM booking_inquiries ORDER BY created_at DESC LIMIT 500').all();
+  return results;
+}
+
+export async function updateInquiryStatus(db, id, status) {
+  await db.prepare('UPDATE booking_inquiries SET status = ? WHERE id = ?').bind(status, id).run();
+}
+
+// ─── User phone ─────────────────────────────────────────────────────────────
+
+export async function updateUserPhone(db, id, phone) {
+  await db.prepare('UPDATE users SET phone = ? WHERE id = ?').bind(phone || null, id).run();
 }

@@ -610,6 +610,38 @@ h1, h2, h3 {
 .modal-row { display: flex; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
 .modal-row strong { color: var(--text); min-width: 72px; }
 
+/* ─── Inquiry modal ──────────────────────────────────────────────────────────── */
+.inquiry-modal { text-align: center; }
+.inquiry-title { font-size: 1.3rem; margin-bottom: 16px; color: var(--accent); }
+.inquiry-dates { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+.inquiry-date-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; text-align: center; }
+.inquiry-date-label { display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+.inquiry-date-value { display: block; font-size: 1rem; font-weight: 600; margin-top: 4px; }
+.inquiry-arrow { font-size: 1.2rem; color: var(--text-muted); }
+.inquiry-nights { background: var(--accent); color: #000; border-radius: 20px; padding: 4px 12px; font-size: 0.85rem; font-weight: 600; }
+.inquiry-form { text-align: left; margin-top: 16px; }
+.inquiry-field { margin-bottom: 12px; }
+.inquiry-field label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.inquiry-field input,
+.inquiry-field select,
+.inquiry-field textarea { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.95rem; font-family: inherit; }
+.inquiry-field textarea { resize: vertical; }
+.inquiry-field select { cursor: pointer; }
+.btn-inquiry-submit { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-inquiry-submit:hover { opacity: 0.9; }
+.btn-inquiry-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.inquiry-status { display: block; text-align: center; margin-top: 8px; font-size: 0.85rem; }
+.inquiry-status.ok { color: #51cf66; }
+.inquiry-status.err { color: #ff6b6b; }
+.inquiry-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-muted); font-size: 0.85rem; }
+.inquiry-divider::before, .inquiry-divider::after { content: ''; flex: 1; border-top: 1px solid var(--border); }
+.inquiry-google-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); text-decoration: none; font-size: 0.95rem; }
+.inquiry-google-btn:hover { background: var(--surface); }
+
+/* Account phone row */
+.account-phone-input-row { display: flex; gap: 8px; align-items: center; }
+.account-phone-input-row input { flex: 1; }
+
 /* ─── Subscribe button & modal ─────────────────────────────────────────────── */
 .btn-subscribe {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1218,6 +1250,10 @@ h1, h2, h3 {
 
   /* Modal: full width */
   .modal-content { width: 96%; padding: 20px 16px; min-width: 0; }
+
+  /* Inquiry modal mobile */
+  .inquiry-dates { flex-wrap: wrap; }
+  .inquiry-date-box { flex: 1; min-width: 100px; }
 
   /* Settings */
   .settings-row { flex-direction: column; align-items: flex-start; gap: 14px; }

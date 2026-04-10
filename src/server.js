@@ -90,8 +90,14 @@ app.get('/auth/logout', (req, res, next) => {
 // Current logged-in user (null if not signed in)
 app.get('/api/me', (req, res) => {
   if (!req.isAuthenticated()) return res.json(null);
-  const { id, name, email, avatar, role } = req.user;
-  res.json({ id, name, email, avatar, role });
+  const { id, name, email, avatar, role, created_at, last_login, phone } = req.user;
+  res.json({ id, name, email, avatar, role, created_at, last_login, phone });
+});
+
+app.patch('/api/me/phone', (req, res) => {
+  if (!req.isAuthenticated()) return res.status(403).json({ error: 'Forbidden' });
+  db.updateUserPhone(req.user.id, req.body.phone);
+  res.json({ ok: true });
 });
 
 // Calendar data — always public
@@ -247,6 +253,39 @@ app.put('/api/admin/feeds', requireAdmin, (req, res) => {
   setFeeds(feeds);
   db.addLog(req.user.id, req.user.name, 'Updated ICS feeds', `${feeds.length} feed(s) configured`);
   res.json({ ok: true });
+});
+
+// ─── Booking inquiries ───────────────────────────────────────────────────────
+
+app.post('/api/inquiries', (req, res) => {
+  const { check_in, check_out, guests, name, email, phone, comment } = req.body;
+  if (!check_in || !check_out || !email) {
+    return res.status(400).json({ error: 'check_in, check_out, and email are required' });
+  }
+  const userId = req.isAuthenticated() ? req.user.id : null;
+  try {
+    const id = db.addInquiry(check_in, check_out, guests, name, email, phone, comment, userId);
+    res.json({ ok: true, id: Number(id) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/inquiries', requireAdmin, (_req, res) => {
+  res.json(db.getInquiries());
+});
+
+app.patch('/api/admin/inquiries/:id/status', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { status } = req.body;
+  if (!status) return res.status(400).json({ error: 'status required' });
+  try {
+    db.updateInquiryStatus(id, status);
+    db.addLog(req.user.id, req.user.name, 'Updated inquiry status', `Inquiry #${id} → ${status}`);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── Push notifications ───────────────────────────────────────────────────────

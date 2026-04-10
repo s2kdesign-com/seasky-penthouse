@@ -147,6 +147,24 @@ const TRANSLATIONS = {
     'account.lastLogin':     'Last login',
     'account.notSignedIn':   'You are not signed in.',
     'account.signInPrompt':  'Sign in with Google to view your account.',
+    'inquiry.title':        'Book Your Stay',
+    'inquiry.checkIn':      'Check-in',
+    'inquiry.checkOut':     'Check-out',
+    'inquiry.guests':       'Guests',
+    'inquiry.name':         'Your Name',
+    'inquiry.email':        'Email',
+    'inquiry.phone':        'Phone Number',
+    'inquiry.comment':      'Comments or special requests',
+    'inquiry.submit':       'Send Inquiry',
+    'inquiry.sending':      'Sending…',
+    'inquiry.sent':         'Inquiry sent! We will contact you soon.',
+    'inquiry.error':        'Error sending inquiry. Please try again.',
+    'inquiry.orSignIn':     'Or sign in for faster booking',
+    'inquiry.selectDates':  'Select dates on the calendar to make a booking inquiry',
+    'account.phone':        'Phone Number',
+    'account.phoneSave':    'Save',
+    'account.phoneSaved':   'Saved!',
+    'account.phoneDesc':    'Add your phone number for booking confirmations',
   },
   bg: {
     'header.subtitle':       'Система за резервации',
@@ -288,6 +306,24 @@ const TRANSLATIONS = {
     'legend.available':      'Свободни',
     'legend.checkin':        'Настаняване',
     'legend.checkout':       'Напускане',
+    'inquiry.title':        'Резервирайте престоя си',
+    'inquiry.checkIn':      'Настаняване',
+    'inquiry.checkOut':     'Напускане',
+    'inquiry.guests':       'Гости',
+    'inquiry.name':         'Вашето име',
+    'inquiry.email':        'Имейл',
+    'inquiry.phone':        'Телефонен номер',
+    'inquiry.comment':      'Коментари или специални заявки',
+    'inquiry.submit':       'Изпрати запитване',
+    'inquiry.sending':      'Изпращане…',
+    'inquiry.sent':         'Запитването е изпратено! Ще се свържем с вас скоро.',
+    'inquiry.error':        'Грешка при изпращане. Моля, опитайте отново.',
+    'inquiry.orSignIn':     'Или влезте за по-бързо резервиране',
+    'inquiry.selectDates':  'Изберете дати от календара за запитване за резервация',
+    'account.phone':        'Телефонен номер',
+    'account.phoneSave':    'Запази',
+    'account.phoneSaved':   'Запазено!',
+    'account.phoneDesc':    'Добавете телефонен номер за потвърждение на резервации',
   },
 };
 
@@ -877,6 +913,114 @@ function initSubscribeModal() {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 }
 
+// ─── Inquiry modal (date selection) ──────────────────────────────────────────
+
+function openInquiryModal(startStr, endStr) {
+  const nights = nightCount(startStr, endStr);
+  const isLoggedIn = !!currentUser;
+
+  const googleBtnSvg = `<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="inquiry-modal">
+      <h2 class="inquiry-title">${t('inquiry.title')}</h2>
+      <div class="inquiry-dates">
+        <div class="inquiry-date-box">
+          <span class="inquiry-date-label">${t('inquiry.checkIn')}</span>
+          <span class="inquiry-date-value">${fmtDateShort(startStr)}</span>
+        </div>
+        <span class="inquiry-arrow">→</span>
+        <div class="inquiry-date-box">
+          <span class="inquiry-date-label">${t('inquiry.checkOut')}</span>
+          <span class="inquiry-date-value">${fmtDateShort(endStr)}</span>
+        </div>
+        ${nights ? `<div class="inquiry-nights">${nights} ${t('modal.nights')}</div>` : ''}
+      </div>
+      <form id="inquiry-form" class="inquiry-form">
+        <input type="hidden" name="check_in" value="${startStr}" />
+        <input type="hidden" name="check_out" value="${endStr}" />
+        <div class="inquiry-field">
+          <label>${t('inquiry.guests')}</label>
+          <select name="guests">
+            ${[1,2,3,4,5,6].map(n => `<option value="${n}">${n}</option>`).join('')}
+          </select>
+        </div>
+        ${!isLoggedIn ? `
+          <div class="inquiry-field">
+            <label>${t('inquiry.name')}</label>
+            <input type="text" name="name" required placeholder="${t('inquiry.name')}" />
+          </div>
+          <div class="inquiry-field">
+            <label>${t('inquiry.email')}</label>
+            <input type="email" name="email" required placeholder="${t('inquiry.email')}" />
+          </div>
+        ` : `
+          <input type="hidden" name="name" value="${escHtml(currentUser.name)}" />
+          <input type="hidden" name="email" value="${escHtml(currentUser.email)}" />
+        `}
+        <div class="inquiry-field">
+          <label>${t('inquiry.phone')}</label>
+          <input type="tel" name="phone" placeholder="${t('inquiry.phone')}" ${isLoggedIn && currentUser.phone ? `value="${escHtml(currentUser.phone)}"` : ''} />
+        </div>
+        <div class="inquiry-field">
+          <label>${t('inquiry.comment')}</label>
+          <textarea name="comment" rows="3" placeholder="${t('inquiry.comment')}"></textarea>
+        </div>
+        <button type="submit" class="btn-inquiry-submit">${t('inquiry.submit')}</button>
+        <span id="inquiry-status" class="inquiry-status"></span>
+      </form>
+      ${!isLoggedIn ? `
+        <div class="inquiry-divider">
+          <span>${t('inquiry.orSignIn')}</span>
+        </div>
+        <a href="/auth/google" class="btn-google-login inquiry-google-btn">
+          ${googleBtnSvg} ${t('auth.signIn')}
+        </a>
+      ` : ''}
+    </div>
+  `;
+
+  // Handle form submit
+  document.getElementById('inquiry-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const statusEl = document.getElementById('inquiry-status');
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    statusEl.textContent = t('inquiry.sending');
+    statusEl.className = 'inquiry-status';
+
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          check_in: fd.get('check_in'),
+          check_out: fd.get('check_out'),
+          guests: parseInt(fd.get('guests')),
+          name: fd.get('name'),
+          email: fd.get('email'),
+          phone: fd.get('phone'),
+          comment: fd.get('comment'),
+        }),
+      });
+      if (res.ok) {
+        statusEl.textContent = t('inquiry.sent');
+        statusEl.classList.add('ok');
+        btn.disabled = true;
+      } else {
+        throw new Error('Failed');
+      }
+    } catch {
+      statusEl.textContent = t('inquiry.error');
+      statusEl.classList.add('err');
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('modal').classList.remove('hidden');
+}
+
 // ─── Event modal ──────────────────────────────────────────────────────────────
 
 function openModal(info) {
@@ -1278,6 +1422,8 @@ function loadAccountPage() {
       </a>`;
     sessionEl.innerHTML = '';
     logoutBtn.style.display = 'none';
+    const phoneCardEarly = document.getElementById('account-phone-card');
+    if (phoneCardEarly) phoneCardEarly.style.display = 'none';
     return;
   }
 
@@ -1311,6 +1457,43 @@ function loadAccountPage() {
       <span class="account-detail-value">${d.value}</span>
     </div>
   `).join('');
+
+  // Phone number (only for logged-in users)
+  const phoneCard = document.getElementById('account-phone-card');
+  const phoneRow = document.getElementById('account-phone-row');
+  if (currentUser) {
+    phoneCard.style.display = '';
+    phoneRow.innerHTML = `
+      <div class="account-phone-input-row">
+        <input type="tel" id="account-phone-input" class="config-input" value="${escHtml(currentUser.phone || '')}" placeholder="${t('inquiry.phone')}" />
+        <button class="btn-save" id="save-phone-btn">${t('account.phoneSave')}</button>
+        <span id="phone-save-status" class="edit-status"></span>
+      </div>
+    `;
+    document.getElementById('save-phone-btn').addEventListener('click', async () => {
+      const phone = document.getElementById('account-phone-input').value;
+      const statusEl = document.getElementById('phone-save-status');
+      statusEl.textContent = t('modal.saving');
+      statusEl.className = 'edit-status';
+      try {
+        const res = await fetch('/api/me/phone', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone }),
+        });
+        if (res.ok) {
+          currentUser.phone = phone;
+          statusEl.textContent = t('account.phoneSaved');
+          statusEl.classList.add('ok');
+        } else throw new Error();
+      } catch {
+        statusEl.textContent = t('modal.saveError');
+        statusEl.classList.add('err');
+      }
+    });
+  } else {
+    phoneCard.style.display = 'none';
+  }
 }
 
 // ─── Push notifications ───────────────────────────────────────────────────────
@@ -1532,6 +1715,15 @@ async function init() {
       right: 'dayGridMonth,multiMonthYear',
     },
     height: 'auto',
+    selectable: true,
+    selectAllow(selectInfo) {
+      return selectInfo.start >= new Date(new Date().setHours(0,0,0,0));
+    },
+    selectMirror: true,
+    select(info) {
+      openInquiryModal(info.startStr, info.endStr);
+      calendar.unselect();
+    },
     firstDay: 1,
     nowIndicator: true,
     fixedWeekCount: false,

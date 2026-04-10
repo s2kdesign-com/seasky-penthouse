@@ -58,7 +58,24 @@ db.exec(`
     is_public   INTEGER NOT NULL DEFAULT 0,  -- 1 = safe to expose on GitHub Pages
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS booking_inquiries (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    check_in    TEXT    NOT NULL,
+    check_out   TEXT    NOT NULL,
+    guests      INTEGER NOT NULL DEFAULT 1,
+    name        TEXT,
+    email       TEXT    NOT NULL,
+    phone       TEXT,
+    comment     TEXT,
+    user_id     INTEGER,
+    status      TEXT    NOT NULL DEFAULT 'pending',
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+// Add phone column to users table (ignore if already exists)
+try { db.prepare('ALTER TABLE users ADD COLUMN phone TEXT').run(); } catch(e) { /* column may already exist */ }
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 const stmts = {
@@ -118,6 +135,17 @@ const stmts = {
       updated_at = CURRENT_TIMESTAMP
   `),
   deleteConfig:    db.prepare('DELETE FROM config WHERE key = ?'),
+
+  // booking inquiries
+  insertInquiry: db.prepare(`
+    INSERT INTO booking_inquiries (check_in, check_out, guests, name, email, phone, comment, user_id)
+    VALUES (@check_in, @check_out, @guests, @name, @email, @phone, @comment, @user_id)
+  `),
+  getInquiries: db.prepare('SELECT * FROM booking_inquiries ORDER BY created_at DESC LIMIT 500'),
+  updateInquiryStatus: db.prepare('UPDATE booking_inquiries SET status = ? WHERE id = ?'),
+
+  // user phone
+  updateUserPhone: db.prepare('UPDATE users SET phone = ? WHERE id = ?'),
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -194,6 +222,21 @@ function setConfig(key, value, isPublic) {
 }
 function deleteConfig(key)  { stmts.deleteConfig.run(key); }
 
+// Booking inquiries
+function addInquiry(checkIn, checkOut, guests, name, email, phone, comment, userId) {
+  const info = stmts.insertInquiry.run({
+    check_in: checkIn, check_out: checkOut, guests: guests || 1,
+    name: name || null, email, phone: phone || null,
+    comment: comment || null, user_id: userId || null
+  });
+  return info.lastInsertRowid;
+}
+function getInquiries()  { return stmts.getInquiries.all(); }
+function updateInquiryStatus(id, status) { stmts.updateInquiryStatus.run(status, id); }
+
+// User phone
+function updateUserPhone(id, phone) { stmts.updateUserPhone.run(phone || null, id); }
+
 /**
  * Seed config table from environment variables (only inserts missing keys).
  */
@@ -226,4 +269,5 @@ module.exports = {
   addLog, getLogs,
   getOverride, getAllOverrides, upsertOverride,
   getConfig, getAllConfig, getPublicConfig, setConfig, deleteConfig, seedConfigFromEnv,
+  addInquiry, getInquiries, updateInquiryStatus, updateUserPhone,
 };

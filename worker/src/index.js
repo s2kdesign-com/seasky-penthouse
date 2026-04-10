@@ -55,8 +55,16 @@ async function handleRequest(request, env) {
   if (path === '/api/me' && method === 'GET') {
     const user = await auth.getSessionUser(request, env);
     if (!user) return json(null);
-    const { id, name, email, avatar, role } = user;
-    return json({ id, name, email, avatar, role });
+    const { id, name, email, avatar, role, created_at, last_login, phone } = user;
+    return json({ id, name, email, avatar, role, created_at, last_login, phone });
+  }
+
+  if (path === '/api/me/phone' && method === 'PATCH') {
+    const user = await auth.getSessionUser(request, env);
+    if (!user) return forbidden();
+    const body = await readJSON(request);
+    await db.updateUserPhone(env.DB, user.id, body.phone);
+    return json({ ok: true });
   }
 
   if (path === '/api/events' && method === 'GET') {
@@ -251,6 +259,41 @@ async function handleRequest(request, env) {
     await saveFeeds(env.DB, body.feeds);
     await db.addLog(env.DB, user.id, user.name, 'Updated ICS feeds',
       `${body.feeds.length} feed(s) configured`);
+    return json({ ok: true });
+  }
+
+  // ── Booking inquiries ──────────────────────────────────────────────────────
+
+  if (path === '/api/inquiries' && method === 'POST') {
+    const body = await readJSON(request);
+    if (!body.check_in || !body.check_out || !body.email) {
+      return json({ error: 'check_in, check_out, and email are required' }, 400);
+    }
+    // Attach user_id if logged in
+    let userId = null;
+    try {
+      const user = await auth.getSessionUser(request, env);
+      if (user) userId = user.id;
+    } catch(e) { /* not logged in */ }
+    const id = await db.addInquiry(env.DB, body.check_in, body.check_out, body.guests, body.name, body.email, body.phone, body.comment, userId);
+    return json({ ok: true, id });
+  }
+
+  if (path === '/api/admin/inquiries' && method === 'GET') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    return json(await db.getInquiries(env.DB));
+  }
+
+  const inquiryStatusMatch = path.match(/^\/api\/admin\/inquiries\/(\d+)\/status$/);
+  if (inquiryStatusMatch && method === 'PATCH') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    const id = parseInt(inquiryStatusMatch[1], 10);
+    const body = await readJSON(request);
+    if (!body.status) return json({ error: 'status required' }, 400);
+    await db.updateInquiryStatus(env.DB, id, body.status);
+    await db.addLog(env.DB, user.id, user.name, 'Updated inquiry status', `Inquiry #${id} → ${body.status}`);
     return json({ ok: true });
   }
 

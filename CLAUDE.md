@@ -41,6 +41,10 @@ If you changed any files in `src/public/`, run `npm run build` to regenerate the
 
 When asked to commit, write clear commit messages explaining *why*, not just *what*. Always include both `src/public/` source files and `docs/` build output.
 
+### 6. Push to GitHub
+
+After every commit, always push to GitHub. Cloudflare Workers auto-deploys from `main` branch, so pushing ensures production stays up to date.
+
 ## Project Structure
 
 Two runtimes, one codebase:

@@ -91,6 +91,20 @@ async function handleRequest(request, env) {
     return json(config);
   }
 
+  if (path === '/api/timezones' && method === 'GET') {
+    const zones = Intl.supportedValuesOf('timeZone');
+    const list = zones.map(tz => {
+      try {
+        const off = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
+          .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
+        return { tz, label: `${tz.replace(/_/g, ' ')} (${off})`, off };
+      } catch {
+        return { tz, label: tz.replace(/_/g, ' '), off: '' };
+      }
+    }).sort((a, b) => a.off.localeCompare(b.off) || a.tz.localeCompare(b.tz));
+    return json(list, 200, { 'Cache-Control': 'public, max-age=86400' });
+  }
+
   if (path === '/api/push/vapid-public-key' && method === 'GET') {
     const key = await db.getConfig(env.DB, 'VAPID_PUBLIC_KEY');
     return json({ key });

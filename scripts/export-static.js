@@ -68,11 +68,24 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 
   // ── 2. Write JSON data ───────────────────────────────────────────────────
   const publicConfig = realDb.getPublicConfig();
+
+  // Pre-compute timezone list for fast settings page load
+  const tzList = Intl.supportedValuesOf('timeZone').map(tz => {
+    try {
+      const off = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
+        .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
+      return { tz, label: `${tz.replace(/_/g, ' ')} (${off})`, off };
+    } catch {
+      return { tz, label: tz.replace(/_/g, ' '), off: '' };
+    }
+  }).sort((a, b) => a.off.localeCompare(b.off) || a.tz.localeCompare(b.tz));
+
   fs.writeFileSync(path.join(DATA_DIR, 'events.json'), JSON.stringify(events, null, 2));
   fs.writeFileSync(path.join(DATA_DIR, 'status.json'), JSON.stringify(status, null, 2));
   fs.writeFileSync(path.join(DATA_DIR, 'feeds.json'),  JSON.stringify(feeds,  null, 2));
   fs.writeFileSync(path.join(DATA_DIR, 'config.json'), JSON.stringify(publicConfig, null, 2));
-  console.log(`✓ Wrote ${events.length} events + config to docs/data/`);
+  fs.writeFileSync(path.join(DATA_DIR, 'timezones.json'), JSON.stringify(tzList));
+  console.log(`✓ Wrote ${events.length} events + config + ${tzList.length} timezones to docs/data/`);
 
   // ── 3. Copy public assets ────────────────────────────────────────────────
   const COPY = ['app.js', 'style.css', 'sw.js', 'calendar.wasm', 'icon-192.png', 'favicon.ico'];

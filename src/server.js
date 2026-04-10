@@ -133,6 +133,25 @@ app.get('/api/calendar.ics', (_req, res) => {
 // Public config (GOOGLE_CLIENT_ID, VAPID_PUBLIC_KEY, etc.)
 app.get('/api/config', (_req, res) => res.json(db.getPublicConfig()));
 
+// Pre-computed timezone list (avoids slow client-side Intl computation)
+let _tzCache = null;
+app.get('/api/timezones', (_req, res) => {
+  if (!_tzCache) {
+    const zones = Intl.supportedValuesOf('timeZone');
+    _tzCache = zones.map(tz => {
+      try {
+        const off = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
+          .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
+        return { tz, label: `${tz.replace(/_/g, ' ')} (${off})`, off };
+      } catch {
+        return { tz, label: tz.replace(/_/g, ' '), off: '' };
+      }
+    }).sort((a, b) => a.off.localeCompare(b.off) || a.tz.localeCompare(b.tz));
+  }
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.json(_tzCache);
+});
+
 // Save date/time override for a single event — admin only
 app.patch('/api/events/:id/override', requireAdmin, (req, res) => {
   const { id } = req.params;

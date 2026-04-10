@@ -1324,38 +1324,20 @@ function urlBase64ToUint8Array(base64String) {
 
 // ─── Timezone selector ───────────────────────────────────────────────────────
 
-const COMMON_TIMEZONES = [
-  'Pacific/Midway', 'Pacific/Honolulu', 'America/Anchorage', 'America/Los_Angeles',
-  'America/Denver', 'America/Chicago', 'America/New_York', 'America/Caracas',
-  'America/Sao_Paulo', 'Atlantic/Azores', 'Europe/London', 'Europe/Paris',
-  'Europe/Sofia', 'Europe/Helsinki', 'Europe/Moscow', 'Asia/Dubai',
-  'Asia/Karachi', 'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Bangkok',
-  'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland',
-];
-
-function initTimezone() {
+async function initTimezone() {
   const select = document.getElementById('tz-select');
   const currentEl = document.getElementById('tz-current');
   if (!select) return;
 
-  // Build the full timezone list: auto + common + all Intl timezones
-  const allZones = new Set(COMMON_TIMEZONES);
+  // Fetch pre-computed timezone list from server
+  const url = IS_STATIC ? 'data/timezones.json' : '/api/timezones';
+  let zones = [];
   try {
-    // Intl.supportedValuesOf is available in modern browsers
-    if (Intl.supportedValuesOf) {
-      for (const tz of Intl.supportedValuesOf('timeZone')) allZones.add(tz);
-    }
-  } catch (e) { /* fallback to common list */ }
-
-  const sorted = [...allZones].sort((a, b) => {
-    // Sort by UTC offset then name
-    try {
-      const now = Date.now();
-      const offA = new Date(now).toLocaleString('en', { timeZone: a, timeZoneName: 'shortOffset' });
-      const offB = new Date(now).toLocaleString('en', { timeZone: b, timeZoneName: 'shortOffset' });
-      return offA.localeCompare(offB) || a.localeCompare(b);
-    } catch { return a.localeCompare(b); }
-  });
+    const res = await fetch(url);
+    zones = await res.json();
+  } catch (e) {
+    console.warn('Failed to load timezones, using browser default');
+  }
 
   // Build options
   select.innerHTML = '';
@@ -1364,17 +1346,10 @@ function initTimezone() {
   autoOpt.textContent = `${t('settings.tzAuto')} — ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
   select.appendChild(autoOpt);
 
-  for (const tz of sorted) {
+  for (const z of zones) {
     const opt = document.createElement('option');
-    opt.value = tz;
-    // Show UTC offset
-    try {
-      const off = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
-        .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
-      opt.textContent = `${tz.replace(/_/g, ' ')} (${off})`;
-    } catch {
-      opt.textContent = tz.replace(/_/g, ' ');
-    }
+    opt.value = z.tz;
+    opt.textContent = z.label;
     select.appendChild(opt);
   }
 

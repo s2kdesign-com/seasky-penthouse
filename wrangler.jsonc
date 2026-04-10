@@ -17,7 +17,8 @@
 		"crons": ["0 * * * *"]
 	},
 	"assets": {
-		"directory": "./src/public/"
+		"directory": "./src/public/",
+		"binding": "ASSETS"
 	},
 	"vars": {
 		"BASE_URL": "https://seasky-penthouse.coingardenworld.workers.dev"

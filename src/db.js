@@ -74,6 +74,16 @@ db.exec(`
   );
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS cron_runs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id      TEXT    NOT NULL,
+    status      TEXT    NOT NULL,
+    details     TEXT,
+    run_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 // Add phone column to users table (ignore if already exists)
 try { db.prepare('ALTER TABLE users ADD COLUMN phone TEXT').run(); } catch(e) { /* column may already exist */ }
 
@@ -108,6 +118,10 @@ const stmts = {
     VALUES (@user_id, @user_name, @action, @details)
   `),
   getLogs: db.prepare('SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 500'),
+
+  // cron runs
+  insertCronRun: db.prepare('INSERT INTO cron_runs (job_id, status, details) VALUES (?, ?, ?)'),
+  getCronHistory: db.prepare('SELECT * FROM cron_runs ORDER BY run_at DESC LIMIT 50'),
 
   // event overrides
   getOverride:    db.prepare('SELECT * FROM event_overrides WHERE event_id = ?'),
@@ -204,6 +218,11 @@ function addLog(userId, userName, action, details) {
 }
 function getLogs() { return stmts.getLogs.all(); }
 
+function addCronRun(jobId, status, details) {
+  stmts.insertCronRun.run(jobId, status, details || null);
+}
+function getCronHistory() { return stmts.getCronHistory.all(); }
+
 function getOverride(eventId)  { return stmts.getOverride.get(eventId); }
 function getAllOverrides()      { return stmts.getAllOverrides.all(); }
 function upsertOverride(eventId, startDt, endDt, userId) {
@@ -266,7 +285,7 @@ function seedConfigFromEnv(env) {
 module.exports = {
   upsertUser, getUserByGoogleId, getUserById, listUsers, setUserRole, deleteUser,
   saveSub, removeSub, getAllSubs,
-  addLog, getLogs,
+  addLog, getLogs, addCronRun, getCronHistory,
   getOverride, getAllOverrides, upsertOverride,
   getConfig, getAllConfig, getPublicConfig, setConfig, deleteConfig, seedConfigFromEnv,
   addInquiry, getInquiries, updateInquiryStatus, updateUserPhone,

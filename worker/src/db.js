@@ -77,6 +77,13 @@ export async function ensureSchema(db) {
       status      TEXT    NOT NULL DEFAULT 'pending',
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS cron_runs (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      job_id      TEXT    NOT NULL,
+      status      TEXT    NOT NULL,
+      details     TEXT,
+      run_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`),
   ]);
 
   // Add phone column to users table (ignore if already exists)
@@ -144,6 +151,18 @@ export async function addLog(db, userId, userName, action, details) {
 
 export async function getLogs(db) {
   const { results } = await db.prepare('SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 500').all();
+  return results;
+}
+
+// ─── Cron job history ────────────────────────────────────────────────────────
+
+export async function addCronRun(db, jobId, status, details) {
+  await db.prepare('INSERT INTO cron_runs (job_id, status, details) VALUES (?, ?, ?)')
+    .bind(jobId, status, details || null).run();
+}
+
+export async function getCronHistory(db) {
+  const { results } = await db.prepare('SELECT * FROM cron_runs ORDER BY run_at DESC LIMIT 50').all();
   return results;
 }
 

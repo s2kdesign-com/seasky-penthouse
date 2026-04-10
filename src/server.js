@@ -16,7 +16,7 @@ const db = require('./db');
 
 const app = express();
 const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
-const HTTP_PORT  = process.env.PORT || 3000;
+const HTTP_PORT  = process.env.HTTP_PORT || 3000;
 
 // ─── TLS certificate ──────────────────────────────────────────────────────────
 const CERT_DIR = path.join(__dirname, '..', 'certs');
@@ -316,9 +316,56 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Cron Job ─────────────────────────────────────────────────────────────────
+// ─── SPA fallback (client-side routing) ──────────────────────────────────────
+app.get('/:lang(en|bg)/:page?', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ─── Cron Jobs ───────────────────────────────────────────────────────────────
+
+const cronJobs = [
+  { id: 'sync-feeds', name: 'Sync iCal Feeds', schedule: '0 * * * *', description: 'Fetches latest bookings from Airbnb, Booking.com, and official website' },
+];
+const cronHistory = [];   // in-memory run history (last 50)
+
+function recordCronRun(jobId, status, details) {
+  db.addCronRun(jobId, status, details);
+  cronHistory.unshift({ jobId, status, details, runAt: new Date().toISOString() });
+  if (cronHistory.length > 50) cronHistory.length = 50;
+}
+
 cron.schedule('0 * * * *', async () => {
-  await syncAllFeeds();
+  try {
+    const result = await syncAllFeeds();
+    recordCronRun('sync-feeds', 'success', `${result.events.length} events synced`);
+  } catch (err) {
+    recordCronRun('sync-feeds', 'error', err.message);
+  }
+});
+
+app.get('/api/admin/cron-jobs', requireAdmin, (_req, res) => {
+  const status = getStatus();
+  const jobs = cronJobs.map(job => ({
+    ...job,
+    lastRun: status.lastSync,
+    feedStatus: status.feeds,
+  }));
+  res.json({ jobs, history: db.getCronHistory() });
+});
+
+app.post('/api/admin/cron-jobs/:id/run', requireAdmin, async (req, res) => {
+  const jobId = req.params.id;
+  if (jobId !== 'sync-feeds') return res.status(404).json({ error: 'Unknown job' });
+  try {
+    const result = await syncAllFeeds();
+    recordCronRun(jobId, 'success', `${result.events.length} events synced`);
+    db.addLog(req.user.id, req.user.name, 'Manual cron run: sync-feeds',
+      `${result.events.length} events synced`);
+    res.json({ ok: true, totalEvents: result.events.length, lastSync: result.lastSync });
+  } catch (err) {
+    recordCronRun(jobId, 'error', err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
@@ -332,6 +379,12 @@ cron.schedule('0 * * * *', async () => {
   // HTTPS server
   https.createServer(tlsOptions, app).listen(HTTPS_PORT, () => {
     console.log(`SeaSky Penthouse dashboard running at https://localhost:${HTTPS_PORT}`);
+  });
+
+  // Plain HTTP server for dev/preview tools (same app, no TLS)
+  const DEV_HTTP_PORT = process.env.DEV_HTTP_PORT || 3080;
+  http.createServer(app).listen(DEV_HTTP_PORT, () => {
+    console.log(`HTTP dev server at http://localhost:${DEV_HTTP_PORT}`);
   });
 
   // HTTP → HTTPS redirect

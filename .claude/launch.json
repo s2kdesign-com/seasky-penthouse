@@ -2,10 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "seasky",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["src/server.js"],
-      "port": 3000
+      "name": "Express Dev Server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nodemon", "src/server.js"],
+      "port": 3443
+    },
+    {
+      "name": "Wrangler Dev Server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["wrangler", "dev"],
+      "port": 8787
     }
   ]
 }

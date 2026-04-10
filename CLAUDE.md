@@ -37,13 +37,9 @@ After completing and validating a task, append a new section to today's journal 
 
 If you changed any files in `src/public/`, run `npm run build` to regenerate the `docs/` directory for GitHub Pages.
 
-### 5. Commit with Descriptive Messages
+### 5. Commit and Push
 
-When asked to commit, write clear commit messages explaining *why*, not just *what*. Always include both `src/public/` source files and `docs/` build output.
-
-### 6. Push to GitHub
-
-After every commit, always push to GitHub. Cloudflare Workers auto-deploys from `main` branch, so pushing ensures production stays up to date.
+After changes are done and verified, commit and push automatically — do not wait to be asked. Write clear commit messages explaining *why*, not just *what*. Always include both `src/public/` source files and `docs/` build output. Push to GitHub immediately after committing — Cloudflare Workers auto-deploys from `main` branch.
 
 ## Project Structure
 

@@ -162,6 +162,43 @@ async function handleRequest(request, env) {
     return json({ ok: true, lastSync: result.lastSync, totalEvents: result.totalEvents });
   }
 
+  // ── Admin: cron jobs ───────────────────────────────────────────────────────
+
+  if (path === '/api/admin/cron-jobs' && method === 'GET') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    const status = await getStatus(env.DB);
+    const jobs = [
+      {
+        id: 'sync-feeds',
+        name: 'Sync iCal Feeds',
+        schedule: '0 * * * *',
+        description: 'Fetches latest bookings from Airbnb, Booking.com, and official website',
+        lastRun: status.lastSync,
+        feedStatus: status.feeds,
+      },
+    ];
+    const history = await db.getCronHistory(env.DB);
+    return json({ jobs, history });
+  }
+
+  if (path.match(/^\/api\/admin\/cron-jobs\/([^/]+)\/run$/) && method === 'POST') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    const jobId = path.match(/^\/api\/admin\/cron-jobs\/([^/]+)\/run$/)[1];
+    if (jobId !== 'sync-feeds') return json({ error: 'Unknown job' }, 404);
+    try {
+      const result = await syncAllFeeds(env.DB);
+      await db.addCronRun(env.DB, jobId, 'success', `${result.totalEvents} events synced`);
+      await db.addLog(env.DB, user.id, user.name, 'Manual cron run: sync-feeds',
+        `${result.totalEvents} events synced`);
+      return json({ ok: true, totalEvents: result.totalEvents, lastSync: result.lastSync });
+    } catch (err) {
+      await db.addCronRun(env.DB, jobId, 'error', err.message);
+      return json({ ok: false, error: err.message }, 500);
+    }
+  }
+
   // ── Admin: user management ─────────────────────────────────────────────────
 
   if (path === '/api/admin/users' && method === 'GET') {
@@ -307,6 +344,12 @@ async function handleRequest(request, env) {
     });
   }
 
+  // ── SPA fallback for client-side routing (/en/*, /bg/*) ────────────────────
+
+  if (/^\/(en|bg)(\/[a-z-]*)?$/.test(path)) {
+    return env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), request));
+  }
+
   // ── Fall through to static assets ──────────────────────────────────────────
 
   return env.ASSETS.fetch(request);
@@ -335,9 +378,11 @@ export default {
   async scheduled(event, env, ctx) {
     try {
       await db.ensureSchema(env.DB);
-      await syncAllFeeds(env.DB);
+      const result = await syncAllFeeds(env.DB);
+      await db.addCronRun(env.DB, 'sync-feeds', 'success', `${result.totalEvents} events synced`);
     } catch (err) {
       console.error('Scheduled sync error:', err.stack || err.message);
+      try { await db.addCronRun(env.DB, 'sync-feeds', 'error', err.message); } catch(e) {}
     }
   },
 };

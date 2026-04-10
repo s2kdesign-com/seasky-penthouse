@@ -132,6 +132,18 @@ const TRANSLATIONS = {
     'feedConfig.idPlaceholder':   'e.g. airbnb',
     'feedConfig.namePlaceholder': 'e.g. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
+    'nav.cronJobs':           'Cron Jobs',
+    'cronJobs.recentRuns':    'Recent Runs',
+    'cronJobs.schedule':      'Schedule',
+    'cronJobs.lastRun':       'Last Run',
+    'cronJobs.nextRun':       'Next Run',
+    'cronJobs.status':        'Status',
+    'cronJobs.runNow':        'Run Now',
+    'cronJobs.running':       'Running...',
+    'cronJobs.success':       'Completed',
+    'cronJobs.error':         'Failed',
+    'cronJobs.never':         'Never',
+    'cronJobs.noHistory':     'No recent runs.',
     'nav.reservations':       'Reservations',
     'reservations.noData':    'No reservations yet.',
     'reservations.checkIn':   'Check-in',
@@ -309,6 +321,18 @@ const TRANSLATIONS = {
     'feedConfig.idPlaceholder':   'напр. airbnb',
     'feedConfig.namePlaceholder': 'напр. Airbnb',
     'feedConfig.urlPlaceholder':  'https://example.com/calendar.ics',
+    'nav.cronJobs':           'Планирани задачи',
+    'cronJobs.recentRuns':    'Последни изпълнения',
+    'cronJobs.schedule':      'Разписание',
+    'cronJobs.lastRun':       'Последно изпълнение',
+    'cronJobs.nextRun':       'Следващо изпълнение',
+    'cronJobs.status':        'Статус',
+    'cronJobs.runNow':        'Изпълни сега',
+    'cronJobs.running':       'Изпълнява се...',
+    'cronJobs.success':       'Завършено',
+    'cronJobs.error':         'Грешка',
+    'cronJobs.never':         'Никога',
+    'cronJobs.noHistory':     'Няма скорошни изпълнения.',
     'nav.reservations':       'Резервации',
     'reservations.noData':    'Няма резервации.',
     'reservations.checkIn':   'Настаняване',
@@ -395,10 +419,11 @@ function applyTranslations() {
   document.documentElement.lang = currentLang;
 }
 
-function setLang(lang) {
+function setLang(lang, { updateUrl = true } = {}) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
   applyTranslations();
+  updateNavHrefs();
   // Update calendar locale if initialised
   if (calendar) {
     calendar.setOption('locale', t('cal.locale'));
@@ -408,6 +433,12 @@ function setLang(lang) {
   const statsRow = document.getElementById('stats-row');
   if (statsRow && statsRow.children.length) {
     loadAll();
+  }
+  // Update URL to reflect new language
+  if (updateUrl && !IS_STATIC) {
+    const { page } = parseRoute(location.pathname);
+    const currentPage = page || 'dashboard';
+    history.pushState({ lang, page: currentPage }, '', pageToUrl(lang, currentPage));
   }
 }
 
@@ -467,9 +498,37 @@ function toInputDt(isoStr) {
   return isoStr.slice(0, 16);
 }
 
+// ─── Router ──────────────────────────────────────────────────────────────────
+
+const VALID_LANGS = ['en', 'bg'];
+const VALID_PAGES = ['dashboard','users','reservations','logs','link-config','feed-config','cron-jobs','subscribe','links','account','settings'];
+
+function parseRoute(pathname) {
+  const path = pathname.replace(/\/$/, '') || '/';
+  const parts = path.split('/').filter(Boolean);
+  let lang = null, page = null;
+  if (parts.length >= 1 && VALID_LANGS.includes(parts[0])) lang = parts[0];
+  if (parts.length >= 2 && VALID_PAGES.includes(parts[1])) page = parts[1];
+  // /{lang} with no page means dashboard
+  if (lang && !page && parts.length <= 1) page = 'dashboard';
+  return { lang, page };
+}
+
+function pageToUrl(lang, page) {
+  return page === 'dashboard' ? `/${lang}` : `/${lang}/${page}`;
+}
+
+function updateNavHrefs() {
+  document.querySelectorAll('.nav-item').forEach(a => {
+    a.href = pageToUrl(currentLang, a.dataset.page);
+  });
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-function navigateTo(page) {
+function navigateTo(page, { pushState = true, langOverride = null } = {}) {
+  const lang = langOverride || currentLang;
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
 
@@ -479,15 +538,33 @@ function navigateTo(page) {
   const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (navEl) navEl.classList.add('active');
 
+  if (!IS_STATIC && pushState) {
+    history.pushState({ lang, page }, '', pageToUrl(lang, page));
+  }
+
+  if (lang !== currentLang) {
+    setLang(lang, { updateUrl: false });
+  }
+
   if (page === 'users')       loadUsersPage();
   if (page === 'logs')        loadLogsPage();
   if (page === 'subscribe')   loadSubscribePage();
   if (page === 'link-config') loadLinkConfigPage();
   if (page === 'feed-config') loadFeedConfigPage();
+  if (page === 'cron-jobs')  loadCronJobsPage();
   if (page === 'reservations') loadReservationsPage();
   if (page === 'account')     loadAccountPage();
   if (page === 'settings')    { initTimezone(); initPush(); }
 }
+
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.page) {
+    navigateTo(e.state.page, { pushState: false, langOverride: e.state.lang });
+  } else {
+    const { lang, page } = parseRoute(location.pathname);
+    navigateTo(page || 'dashboard', { pushState: false, langOverride: lang || currentLang });
+  }
+});
 
 document.querySelectorAll('.nav-item').forEach(a => {
   a.addEventListener('click', (e) => {
@@ -1287,19 +1364,130 @@ async function loadLogsPage() {
 
 document.getElementById('logs-refresh').addEventListener('click', loadLogsPage);
 
+// ─── Cron Jobs page (admin) ─────────────────────────────────────────────────
+
+function cronNextRun(schedule) {
+  // Parse simple cron "0 * * * *" → next top-of-hour
+  const now = new Date();
+  const next = new Date(now);
+  next.setMinutes(0, 0, 0);
+  next.setHours(next.getHours() + 1);
+  return next.toISOString();
+}
+
+async function loadCronJobsPage() {
+  if (!currentUser || currentUser.role !== 'admin') return;
+  const listEl = document.getElementById('cron-jobs-list');
+  const histEl = document.getElementById('cron-jobs-history');
+
+  listEl.innerHTML = '<p style="color:var(--text-muted)">Loading...</p>';
+  histEl.innerHTML = '';
+
+  let data;
+  try {
+    const res = await fetch('/api/admin/cron-jobs');
+    if (!res.ok) throw new Error('Failed to load');
+    data = await res.json();
+  } catch (e) {
+    listEl.innerHTML = `<p style="color:var(--danger)">${escHtml(e.message)}</p>`;
+    return;
+  }
+
+  // Render job cards
+  listEl.innerHTML = data.jobs.map(job => `
+    <div class="settings-card cron-job-card">
+      <div class="cron-job-header">
+        <div>
+          <h3 class="cron-job-name">${escHtml(job.name)}</h3>
+          <p class="cron-job-desc">${escHtml(job.description)}</p>
+        </div>
+        <button class="btn-sync cron-run-btn" data-job-id="${escHtml(job.id)}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>${t('cronJobs.runNow')}</span>
+        </button>
+      </div>
+      <div class="cron-job-meta">
+        <div class="cron-meta-item">
+          <span class="cron-meta-label">${t('cronJobs.schedule')}</span>
+          <span class="cron-meta-value"><code>${escHtml(job.schedule)}</code> (${t('cronJobs.schedule') === 'Разписание' ? 'всеки час' : 'every hour'})</span>
+        </div>
+        <div class="cron-meta-item">
+          <span class="cron-meta-label">${t('cronJobs.lastRun')}</span>
+          <span class="cron-meta-value">${job.lastRun ? fmtDate(job.lastRun) : t('cronJobs.never')}</span>
+        </div>
+        <div class="cron-meta-item">
+          <span class="cron-meta-label">${t('cronJobs.nextRun')}</span>
+          <span class="cron-meta-value">${fmtDate(cronNextRun(job.schedule))}</span>
+        </div>
+      </div>
+      ${job.feedStatus ? `
+        <div class="cron-feed-status">
+          ${job.feedStatus.map(f => `
+            <span class="cron-feed-pill ${f.status === 'ok' ? 'cron-feed-ok' : f.status === 'error' ? 'cron-feed-error' : ''}"">
+              ${escHtml(f.name)}: ${f.status === 'ok' ? '✓' : f.status === 'error' ? '✗' : '…'}
+            </span>
+          `).join('')}
+        </div>
+      ` : ''}
+      <span class="cron-job-status" id="cron-status-${escHtml(job.id)}"></span>
+    </div>
+  `).join('');
+
+  // Render history
+  if (data.history && data.history.length > 0) {
+    histEl.innerHTML = `<div class="settings-card"><table class="cron-history-table">
+      <thead><tr>
+        <th>${t('cronJobs.status')}</th>
+        <th>Details</th>
+        <th>Time</th>
+      </tr></thead>
+      <tbody>${data.history.map(h => `
+        <tr>
+          <td><span class="cron-status-badge cron-status-${h.status}">${h.status === 'success' ? '✓' : '✗'} ${h.status}</span></td>
+          <td>${escHtml(h.details || '')}</td>
+          <td>${fmtDate(h.run_at || h.runAt)}</td>
+        </tr>
+      `).join('')}</tbody>
+    </table></div>`;
+  } else {
+    histEl.innerHTML = `<p style="color:var(--text-muted)">${t('cronJobs.noHistory')}</p>`;
+  }
+
+  // Wire up run buttons
+  listEl.querySelectorAll('.cron-run-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const jobId = btn.dataset.jobId;
+      const statusEl = document.getElementById(`cron-status-${jobId}`);
+      btn.disabled = true;
+      statusEl.textContent = t('cronJobs.running');
+      statusEl.className = 'cron-job-status';
+      try {
+        const res = await fetch(`/api/admin/cron-jobs/${jobId}/run`, { method: 'POST' });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed');
+        statusEl.textContent = `${t('cronJobs.success')} (${result.totalEvents} events)`;
+        statusEl.className = 'cron-job-status cron-status-ok';
+        setTimeout(() => loadCronJobsPage(), 2000);
+      } catch (e) {
+        statusEl.textContent = `${t('cronJobs.error')}: ${e.message}`;
+        statusEl.className = 'cron-job-status cron-status-err';
+      }
+      btn.disabled = false;
+    });
+  });
+}
+
 // ─── Reservations page (admin) ──────────────────────────────────────────────
 
 async function loadReservationsPage() {
   const container = document.getElementById('reservations-content');
   container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
+  const isAdmin = currentUser?.role === 'admin';
 
-  // Fetch both inquiries and calendar events in parallel
-  const [inqRes, eventsRes] = await Promise.all([
-    fetch('/api/admin/inquiries'),
-    apiGet('/api/events'),
-  ]);
-  if (!inqRes.ok) { container.innerHTML = `<p class="loading-text">${t('status.denied')}</p>`; return; }
-  const inquiries = await inqRes.json();
+  // Fetch events (public) and inquiries (admin only) in parallel
+  const fetches = [apiGet('/api/events')];
+  if (isAdmin) fetches.push(fetch('/api/admin/inquiries').then(r => r.ok ? r.json() : []));
+  const [eventsRes, inquiries = []] = await Promise.all(fetches);
   const events = eventsRes || [];
 
   // Build unified list
@@ -1370,11 +1558,11 @@ async function loadReservationsPage() {
               </div>
               <div class="reservation-badges">
                 <span class="reservation-source-badge source-inquiry">${t('reservations.filterInquiries')}</span>
-                <select class="reservation-status-select" data-id="${inq.id}">
+                ${isAdmin ? `<select class="reservation-status-select" data-id="${inq.id}">
                   <option value="pending" ${inq.status === 'pending' ? 'selected' : ''}>${t('reservations.pending')}</option>
                   <option value="confirmed" ${inq.status === 'confirmed' ? 'selected' : ''}>${t('reservations.confirmed')}</option>
                   <option value="declined" ${inq.status === 'declined' ? 'selected' : ''}>${t('reservations.declined')}</option>
-                </select>
+                </select>` : `<span class="reservation-status-badge status-${inq.status}">${t('reservations.' + inq.status)}</span>`}
               </div>
             </div>
             <div class="reservation-details">
@@ -1960,6 +2148,22 @@ async function apiGet(path) {
 }
 
 async function init() {
+  // ── Route from URL ────────────────────────────────────────────────────────
+  let startPage = 'dashboard';
+  if (!IS_STATIC) {
+    const { lang, page } = parseRoute(location.pathname);
+    if (!lang && !page) {
+      const savedLang = localStorage.getItem('lang') || 'en';
+      currentLang = savedLang;
+      history.replaceState({ lang: savedLang, page: 'dashboard' }, '', `/${savedLang}`);
+    } else {
+      if (lang) { currentLang = lang; localStorage.setItem('lang', lang); }
+      startPage = page || 'dashboard';
+      const resolvedLang = lang || currentLang;
+      history.replaceState({ lang: resolvedLang, page: startPage }, '', pageToUrl(resolvedLang, startPage));
+    }
+  }
+
   await loadWasm();
 
   if (IS_STATIC) {
@@ -2069,10 +2273,14 @@ async function init() {
   calendar.render();
 
   applyTranslations();
+  updateNavHrefs();
   initSettings();
   initPush();
 
   initSubscribeModal();
+
+  // Navigate to the page from URL (or default dashboard)
+  navigateTo(startPage, { pushState: false });
 
   await loadAll();
   setInterval(loadAll, 60 * 60 * 1000);

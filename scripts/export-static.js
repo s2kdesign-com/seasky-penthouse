@@ -109,6 +109,10 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
     '<meta charset="UTF-8" />\n  <meta name="base-url" content="." />',
   );
 
+  // Replace <base href="/"> with relative base for GitHub Pages
+  html = html.replace('<base href="/" />', '<base href="./" />');
+
+
   // Remove login.html link (no auth in static mode)
   // Strip the Google Fonts / CDN links that require online access — keep FullCalendar CDN
   fs.writeFileSync(path.join(DOCS, 'index.html'), html);

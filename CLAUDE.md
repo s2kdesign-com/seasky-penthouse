@@ -37,7 +37,21 @@ After completing and validating a task, append a new section to today's journal 
 
 If you changed any files in `src/public/`, run `npm run build` to regenerate the `docs/` directory for GitHub Pages.
 
-### 5. Commit and Push
+### 5. Update the Changelog
+
+Before committing, bump the version in `CHANGELOG.json` (and its copy in `src/public/CHANGELOG.json`). Both files must stay in sync. Use semantic versioning:
+- **Patch** (1.7.1): bug fixes, small tweaks
+- **Minor** (1.8.0): new features, new pages, new endpoints
+- **Major** (2.0.0): breaking changes or major rewrites
+
+Add a new entry at the **top** of the JSON array with:
+- `version`: the new version string
+- `date`: today's date (YYYY-MM-DD)
+- `changes`: array of 1-3 short bullet points summarizing what changed
+
+Also update the `version` field in `package.json` to match.
+
+### 6. Commit and Push
 
 After changes are done and verified, commit and push automatically — do not wait to be asked. Write clear commit messages explaining *why*, not just *what*. Always include both `src/public/` source files and `docs/` build output. Push to GitHub immediately after committing — Cloudflare Workers auto-deploys from `main` branch.
 
@@ -62,6 +76,8 @@ Two runtimes, one codebase:
 | `worker/src/auth.js` | Google OAuth + cookie sessions |
 | `worker/src/ics.js` | iCal feed parser |
 | `wrangler.jsonc` | Cloudflare Workers config (D1 binding, cron) |
+| `CHANGELOG.json` | Version history — bump on every commit |
+| `src/public/CHANGELOG.json` | Copy of changelog served as static asset |
 | `schema.sql` | Database schema reference |
 
 ### Frontend Patterns

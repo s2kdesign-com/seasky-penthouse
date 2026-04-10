@@ -1191,6 +1191,52 @@ h1, h2, h3 {
   background: transparent; color: #000; font-size: 1.1rem; padding: 4px 8px;
 }
 
+/* ─── Changelog ─────────────────────────────────────────────────────────────── */
+.changelog-list { display: flex; flex-direction: column; gap: 16px; }
+.changelog-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.changelog-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.changelog-version {
+  background: var(--accent);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.changelog-date {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.changelog-changes {
+  list-style: disc;
+  padding-left: 20px;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.changelog-changes li { margin-bottom: 2px; }
+
+/* ─── Exceptions ────────────────────────────────────────────────────────────── */
+#exceptions-content .data-table code {
+  font-size: 12px;
+  color: var(--danger, #e74c3c);
+}
+#exceptions-content details summary {
+  cursor: pointer; color: var(--muted); font-size: 11px; margin-top: 4px;
+}
+#exceptions-content details pre {
+  background: var(--surface2); padding: 8px; border-radius: 4px; margin-top: 4px;
+  color: var(--muted);
+}
+
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 .footer {
   background: var(--header-bg);

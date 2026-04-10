@@ -88,7 +88,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
   console.log(`✓ Wrote ${events.length} events + config + ${tzList.length} timezones to docs/data/`);
 
   // ── 3. Copy public assets ────────────────────────────────────────────────
-  const COPY = ['app.js', 'style.css', 'sw.js', 'calendar.wasm', 'icon-192.png', 'favicon.ico'];
+  const COPY = ['app.js', 'style.css', 'sw.js', 'calendar.wasm', 'icon-192.png', 'favicon.ico', 'CHANGELOG.json'];
   for (const f of COPY) {
     const src = path.join(PUBLIC, f);
     if (fs.existsSync(src)) {

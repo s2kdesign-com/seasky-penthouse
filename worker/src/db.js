@@ -84,6 +84,18 @@ export async function ensureSchema(db) {
       details     TEXT,
       run_at      DATETIME DEFAULT CURRENT_TIMESTAMP
     )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS client_errors (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      message     TEXT    NOT NULL,
+      source      TEXT,
+      lineno      INTEGER,
+      colno       INTEGER,
+      stack       TEXT,
+      url         TEXT,
+      user_agent  TEXT,
+      user_id     INTEGER,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`),
   ]);
 
   // Add phone column to users table (ignore if already exists)
@@ -164,6 +176,22 @@ export async function addCronRun(db, jobId, status, details) {
 export async function getCronHistory(db) {
   const { results } = await db.prepare('SELECT * FROM cron_runs ORDER BY run_at DESC LIMIT 50').all();
   return results;
+}
+
+// ─── Client errors ──────────────────────────────────────────────────────
+
+export async function addClientError(db, message, source, lineno, colno, stack, url, userAgent, userId) {
+  await db.prepare('INSERT INTO client_errors (message, source, lineno, colno, stack, url, user_agent, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(message, source || null, lineno || null, colno || null, stack || null, url || null, userAgent || null, userId || null).run();
+}
+
+export async function getClientErrors(db, limit = 200) {
+  const { results } = await db.prepare('SELECT * FROM client_errors ORDER BY created_at DESC LIMIT ?').bind(limit).all();
+  return results;
+}
+
+export async function clearClientErrors(db) {
+  await db.prepare('DELETE FROM client_errors').run();
 }
 
 // ─── Event overrides ─────────────────────────────────────────────────────────

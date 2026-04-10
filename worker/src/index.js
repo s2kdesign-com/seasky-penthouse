@@ -146,6 +146,45 @@ async function handleRequest(request, env) {
     return json({ ok: true });
   }
 
+  // ── Client error logging (public) ──────────────────────────────────────────
+
+  if (path === '/api/errors' && method === 'POST') {
+    const body = await readJSON(request);
+    if (!body.message) return json({ error: 'message required' }, 400);
+    let userId = null;
+    try {
+      const user = await auth.getSessionUser(request, env);
+      if (user) userId = user.id;
+    } catch(e) { /* not logged in */ }
+    await db.addClientError(env.DB, body.message, body.source, body.lineno, body.colno, body.stack, body.url, request.headers.get('User-Agent'), userId);
+    return json({ ok: true });
+  }
+
+  // ── Admin: exceptions ─────────────────────────────────────────────────────
+
+  if (path === '/api/admin/errors' && method === 'GET') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    return json(await db.getClientErrors(env.DB));
+  }
+
+  if (path === '/api/admin/errors' && method === 'DELETE') {
+    const user = await requireAdmin(request, env);
+    if (!user) return forbidden();
+    await db.clearClientErrors(env.DB);
+    await db.addLog(env.DB, user.id, user.name, 'Cleared client errors', null);
+    return json({ ok: true });
+  }
+
+  // ── Changelog (public) ────────────────────────────────────────────────────
+
+  if (path === '/api/changelog' && method === 'GET') {
+    const res = await env.ASSETS.fetch(new Request(new URL('/CHANGELOG.json', url.origin)));
+    if (!res.ok) return json([]);
+    const data = await res.json();
+    return json(data, 200, { 'Cache-Control': 'public, max-age=300' });
+  }
+
   // ── Admin: event override ──────────────────────────────────────────────────
 
   const overrideMatch = path.match(/^\/api\/events\/([^/]+)\/override$/);

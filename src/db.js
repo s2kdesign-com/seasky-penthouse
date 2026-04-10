@@ -82,6 +82,19 @@ db.exec(`
     details     TEXT,
     run_at      DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS client_errors (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    message     TEXT    NOT NULL,
+    source      TEXT,
+    lineno      INTEGER,
+    colno       INTEGER,
+    stack       TEXT,
+    url         TEXT,
+    user_agent  TEXT,
+    user_id     INTEGER,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Add phone column to users table (ignore if already exists)
@@ -122,6 +135,11 @@ const stmts = {
   // cron runs
   insertCronRun: db.prepare('INSERT INTO cron_runs (job_id, status, details) VALUES (?, ?, ?)'),
   getCronHistory: db.prepare('SELECT * FROM cron_runs ORDER BY run_at DESC LIMIT 50'),
+
+  // client errors
+  insertClientError: db.prepare('INSERT INTO client_errors (message, source, lineno, colno, stack, url, user_agent, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
+  getClientErrors: db.prepare('SELECT * FROM client_errors ORDER BY created_at DESC LIMIT 200'),
+  clearClientErrors: db.prepare('DELETE FROM client_errors'),
 
   // event overrides
   getOverride:    db.prepare('SELECT * FROM event_overrides WHERE event_id = ?'),
@@ -223,6 +241,12 @@ function addCronRun(jobId, status, details) {
 }
 function getCronHistory() { return stmts.getCronHistory.all(); }
 
+function addClientError(message, source, lineno, colno, stack, url, userAgent, userId) {
+  stmts.insertClientError.run(message, source || null, lineno || null, colno || null, stack || null, url || null, userAgent || null, userId || null);
+}
+function getClientErrors() { return stmts.getClientErrors.all(); }
+function clearClientErrors() { stmts.clearClientErrors.run(); }
+
 function getOverride(eventId)  { return stmts.getOverride.get(eventId); }
 function getAllOverrides()      { return stmts.getAllOverrides.all(); }
 function upsertOverride(eventId, startDt, endDt, userId) {
@@ -285,7 +309,7 @@ function seedConfigFromEnv(env) {
 module.exports = {
   upsertUser, getUserByGoogleId, getUserById, listUsers, setUserRole, deleteUser,
   saveSub, removeSub, getAllSubs,
-  addLog, getLogs, addCronRun, getCronHistory,
+  addLog, getLogs, addCronRun, getCronHistory, addClientError, getClientErrors, clearClientErrors,
   getOverride, getAllOverrides, upsertOverride,
   getConfig, getAllConfig, getPublicConfig, setConfig, deleteConfig, seedConfigFromEnv,
   addInquiry, getInquiries, updateInquiryStatus, updateUserPhone,

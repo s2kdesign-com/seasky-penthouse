@@ -1,0 +1,70 @@
+[
+  {
+    "version": "1.7.0",
+    "date": "2026-04-10",
+    "changes": [
+      "Added Exceptions page for admin error monitoring",
+      "Added Changelog page visible to all users",
+      "Auto-versioning with changelog on each commit"
+    ]
+  },
+  {
+    "version": "1.6.0",
+    "date": "2026-04-10",
+    "changes": [
+      "Fixed Cloudflare Worker ASSETS binding for /api/version and SPA routes"
+    ]
+  },
+  {
+    "version": "1.5.0",
+    "date": "2026-04-10",
+    "changes": [
+      "Added version detection with refresh banner on new deployments",
+      "Added push notifications on new booking inquiries"
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "date": "2026-04-10",
+    "changes": [
+      "Made Reservations page public (view-only for non-admins)",
+      "Auto-commit and push workflow in CLAUDE.md"
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "date": "2026-04-10",
+    "changes": [
+      "Added Cron Jobs admin page with run history",
+      "Hourly iCal feed sync via Cloudflare cron trigger"
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2026-04-10",
+    "changes": [
+      "URL-based routing with language prefixes (/en/*, /bg/*)",
+      "Dashboard accessible at /{lang} root URL"
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-04-10",
+    "changes": [
+      "ICS feed configuration page for admins",
+      "Link settings admin page",
+      "Subscribe to calendar page",
+      "Account page with phone number"
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-04-09",
+    "changes": [
+      "Initial release: booking dashboard with Airbnb, Booking.com, and official website calendar aggregation",
+      "Google OAuth authentication",
+      "Admin user management and activity logs",
+      "Dark/light theme with Bulgarian/English i18n"
+    ]
+  }
+]

@@ -1,6 +1,6 @@
 {
   "name": "seasky-penthouse-dashboard",
-  "version": "1.0.0",
+  "version": "1.7.0",
   "description": "SeaSky Penthouse calendar dashboard combining Airbnb, Booking, and official website feeds",
   "main": "src/server.js",
   "scripts": {

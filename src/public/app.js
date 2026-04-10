@@ -201,6 +201,19 @@ const TRANSLATIONS = {
     'account.phoneSave':    'Save',
     'account.phoneSaved':   'Saved!',
     'account.phoneDesc':    'Add your phone number for booking confirmations',
+    'nav.exceptions':       'Exceptions',
+    'exceptions.clear':     'Clear All',
+    'exceptions.noErrors':  'No client errors recorded.',
+    'exceptions.colTime':   'Time',
+    'exceptions.colMessage':'Message',
+    'exceptions.colSource': 'Source',
+    'exceptions.colLine':   'Line',
+    'exceptions.colUrl':    'Page',
+    'exceptions.colUser':   'User',
+    'exceptions.confirmClear': 'Clear all error logs?',
+    'nav.changelog':        'Changelog',
+    'changelog.noEntries':  'No changelog entries.',
+    'changelog.version':    'Version',
   },
   bg: {
     'header.subtitle':       'Система за резервации',
@@ -396,6 +409,19 @@ const TRANSLATIONS = {
     'account.phoneSave':    'Запази',
     'account.phoneSaved':   'Запазено!',
     'account.phoneDesc':    'Добавете телефонен номер за потвърждение на резервации',
+    'nav.exceptions':       'Изключения',
+    'exceptions.clear':     'Изчисти всички',
+    'exceptions.noErrors':  'Няма записани грешки.',
+    'exceptions.colTime':   'Час',
+    'exceptions.colMessage':'Съобщение',
+    'exceptions.colSource': 'Източник',
+    'exceptions.colLine':   'Ред',
+    'exceptions.colUrl':    'Страница',
+    'exceptions.colUser':   'Потребител',
+    'exceptions.confirmClear': 'Изчистване на всички грешки?',
+    'nav.changelog':        'Промени',
+    'changelog.noEntries':  'Няма записи за промени.',
+    'changelog.version':    'Версия',
   },
 };
 
@@ -505,7 +531,7 @@ function toInputDt(isoStr) {
 // ─── Router ──────────────────────────────────────────────────────────────────
 
 const VALID_LANGS = ['en', 'bg'];
-const VALID_PAGES = ['dashboard','users','reservations','logs','link-config','feed-config','cron-jobs','subscribe','links','account','settings'];
+const VALID_PAGES = ['dashboard','users','reservations','logs','link-config','feed-config','cron-jobs','exceptions','changelog','subscribe','links','account','settings'];
 
 function parseRoute(pathname) {
   const path = pathname.replace(/\/$/, '') || '/';
@@ -556,6 +582,8 @@ function navigateTo(page, { pushState = true, langOverride = null } = {}) {
   if (page === 'link-config') loadLinkConfigPage();
   if (page === 'feed-config') loadFeedConfigPage();
   if (page === 'cron-jobs')  loadCronJobsPage();
+  if (page === 'exceptions') loadExceptionsPage();
+  if (page === 'changelog') loadChangelogPage();
   if (page === 'reservations') loadReservationsPage();
   if (page === 'account')     loadAccountPage();
   if (page === 'settings')    { initTimezone(); initPush(); }
@@ -1481,6 +1509,80 @@ async function loadCronJobsPage() {
   });
 }
 
+// ─── Exceptions page (admin) ────────────────────────────────────────────────
+
+async function loadExceptionsPage() {
+  const container = document.getElementById('exceptions-content');
+  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
+
+  const errors = await apiGet('/api/admin/errors');
+  if (!errors || errors.length === 0) {
+    container.innerHTML = `<p class="loading-text">${t('exceptions.noErrors')}</p>`;
+  } else {
+    let html = `<div class="card" style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>${t('exceptions.colTime')}</th>
+      <th>${t('exceptions.colMessage')}</th>
+      <th>${t('exceptions.colSource')}</th>
+      <th>${t('exceptions.colLine')}</th>
+      <th>${t('exceptions.colUrl')}</th>
+    </tr></thead><tbody>`;
+    for (const err of errors) {
+      const time = err.created_at ? new Date(err.created_at + 'Z').toLocaleString() : '—';
+      const msg = escHtml(err.message || '');
+      const stack = err.stack ? `<details><summary>Stack</summary><pre style="white-space:pre-wrap;font-size:11px;max-height:200px;overflow:auto">${escHtml(err.stack)}</pre></details>` : '';
+      const src = escHtml(err.source || '—');
+      const line = err.lineno ? `${err.lineno}:${err.colno || 0}` : '—';
+      const pageUrl = escHtml(err.url || '—');
+      html += `<tr>
+        <td style="white-space:nowrap">${time}</td>
+        <td style="max-width:400px"><code style="word-break:break-all">${msg}</code>${stack}</td>
+        <td style="max-width:200px;word-break:break-all;font-size:12px">${src}</td>
+        <td>${line}</td>
+        <td style="max-width:200px;word-break:break-all;font-size:12px">${pageUrl}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  }
+
+  // Clear button
+  document.getElementById('exceptions-clear').onclick = async () => {
+    if (!confirm(t('exceptions.confirmClear'))) return;
+    await fetch('/api/admin/errors', { method: 'DELETE' });
+    loadExceptionsPage();
+  };
+  document.getElementById('exceptions-refresh').onclick = () => loadExceptionsPage();
+}
+
+// ─── Changelog page (public) ────────────────────────────────────────────────
+
+async function loadChangelogPage() {
+  const container = document.getElementById('changelog-content');
+  container.innerHTML = `<p class="loading-text">${t('status.loading')}</p>`;
+
+  const data = await apiGet('/api/changelog');
+  if (!data || data.length === 0) {
+    container.innerHTML = `<p class="loading-text">${t('changelog.noEntries')}</p>`;
+    return;
+  }
+
+  let html = '<div class="changelog-list">';
+  for (const entry of data) {
+    html += `<div class="changelog-entry">
+      <div class="changelog-header">
+        <span class="changelog-version">${escHtml(entry.version)}</span>
+        <span class="changelog-date">${escHtml(entry.date)}</span>
+      </div>
+      <ul class="changelog-changes">`;
+    for (const change of (entry.changes || [])) {
+      html += `<li>${escHtml(change)}</li>`;
+    }
+    html += '</ul></div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 // ─── Reservations page (admin) ──────────────────────────────────────────────
 
 async function loadReservationsPage() {
@@ -2140,6 +2242,7 @@ async function apiGet(path) {
       '/api/status':  './data/status.json',
       '/api/feeds':   './data/feeds.json',
       '/api/config':  './data/config.json',
+      '/api/changelog': './CHANGELOG.json',
       '/api/me':      null,
     };
     const file = map[path];
@@ -2312,6 +2415,37 @@ async function init() {
       }
     } catch (_) {}
   }
+}
+
+// ─── Global error logging ────────────────────────────────────────────────────
+if (!IS_STATIC) {
+  window.addEventListener('error', (e) => {
+    try {
+      fetch('/api/errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: e.message || String(e),
+          source: e.filename || null,
+          lineno: e.lineno || null,
+          colno: e.colno || null,
+          stack: e.error?.stack || null,
+          url: location.href,
+        }),
+      }).catch(() => {});
+    } catch (_) {}
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    try {
+      const msg = e.reason?.message || String(e.reason);
+      const stack = e.reason?.stack || null;
+      fetch('/api/errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Unhandled rejection: ${msg}`, stack, url: location.href }),
+      }).catch(() => {});
+    } catch (_) {}
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

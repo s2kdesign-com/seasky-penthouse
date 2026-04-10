@@ -170,6 +170,42 @@ app.get('/api/timezones', (_req, res) => {
   res.json(_tzCache);
 });
 
+// ── Client error logging (public) ───────────────────────────────────────────
+app.post('/api/errors', (req, res) => {
+  const { message, source, lineno, colno, stack, url: pageUrl } = req.body;
+  if (!message) return res.status(400).json({ error: 'message required' });
+  const userId = req.user?.id || null;
+  const userAgent = req.headers['user-agent'] || null;
+  try {
+    db.addClientError(message, source, lineno, colno, stack, pageUrl, userAgent, userId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: view and clear client errors
+app.get('/api/admin/errors', requireAdmin, (_req, res) => {
+  res.json(db.getClientErrors());
+});
+
+app.delete('/api/admin/errors', requireAdmin, (req, res) => {
+  db.clearClientErrors();
+  db.addLog(req.user.id, req.user.name, 'Cleared client errors', null);
+  res.json({ ok: true });
+});
+
+// ── Changelog (public) ─────────────────────────────────────────────────────
+app.get('/api/changelog', (_req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.json'), 'utf8'));
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json(data);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
 // Save date/time override for a single event — admin only
 app.patch('/api/events/:id/override', requireAdmin, (req, res) => {
   const { id } = req.params;

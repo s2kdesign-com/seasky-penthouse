@@ -1,11 +1,11 @@
 {
-  "lastSync": "2026-04-18T22:41:16.955Z",
+  "lastSync": "2026-04-18T23:41:13.381Z",
   "feeds": [
     {
       "id": "airbnb",
       "name": "Airbnb",
       "status": "ok",
-      "lastChecked": "2026-04-18T22:41:16.955Z",
+      "lastChecked": "2026-04-18T23:41:13.381Z",
       "error": null,
       "count": 0
     },
@@ -13,7 +13,7 @@
       "id": "booking",
       "name": "Booking.com",
       "status": "ok",
-      "lastChecked": "2026-04-18T22:41:16.955Z",
+      "lastChecked": "2026-04-18T23:41:13.381Z",
       "error": null,
       "count": 9
     },
@@ -21,7 +21,7 @@
       "id": "official",
       "name": "Official Website",
       "status": "ok",
-      "lastChecked": "2026-04-18T22:41:16.955Z",
+      "lastChecked": "2026-04-18T23:41:13.381Z",
       "error": null,
       "count": 7
     }

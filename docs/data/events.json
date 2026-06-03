@@ -1,5 +1,18 @@
 [
   {
+    "id": "airbnb_7f662ec65913-80d6d2e9572bd652f8e1c60bb8efcf95@airbnb.com",
+    "title": "Airbnb (Not available)",
+    "start": "2027-06-03T15:00",
+    "end": "2027-06-04T11:00",
+    "allDay": false,
+    "source": "airbnb",
+    "sourceName": "Airbnb",
+    "color": "#FF5A5F",
+    "description": "",
+    "rawStart": "2027-06-03T00:00:00.000Z",
+    "rawEnd": "2027-06-04T00:00:00.000Z"
+  },
+  {
     "id": "booking_abf7abba151fd36b38f90938a7151999@booking.com",
     "title": "Booking (Not Available)",
     "start": "2026-06-28T15:00",
@@ -68,13 +81,26 @@
     "id": "booking_067e36e0325e293e72e46999c7b66878@booking.com",
     "title": "Booking (Not Available)",
     "start": "2027-04-01T15:00",
-    "end": "2027-12-03T11:00",
+    "end": "2027-06-03T11:00",
     "allDay": false,
     "source": "booking",
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
     "rawStart": "2027-04-01T00:00:00.000Z",
+    "rawEnd": "2027-06-03T00:00:00.000Z"
+  },
+  {
+    "id": "booking_cbf6bfe5716df925d9eb54a96fb433ee@booking.com",
+    "title": "Booking (Not Available)",
+    "start": "2027-06-04T15:00",
+    "end": "2027-12-03T11:00",
+    "allDay": false,
+    "source": "booking",
+    "sourceName": "Booking.com",
+    "color": "#003580",
+    "description": "",
+    "rawStart": "2027-06-04T00:00:00.000Z",
     "rawEnd": "2027-12-03T00:00:00.000Z"
   }
 ]

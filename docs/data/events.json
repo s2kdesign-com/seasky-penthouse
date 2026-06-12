@@ -1,18 +1,5 @@
 [
   {
-    "id": "airbnb_7f662ec65913-47f8bcc087eb81a28941925e4392ef54@airbnb.com",
-    "title": "Airbnb (Not available)",
-    "start": "2027-06-12T15:00",
-    "end": "2027-06-13T11:00",
-    "allDay": false,
-    "source": "airbnb",
-    "sourceName": "Airbnb",
-    "color": "#FF5A5F",
-    "description": "",
-    "rawStart": "2027-06-12T00:00:00.000Z",
-    "rawEnd": "2027-06-13T00:00:00.000Z"
-  },
-  {
     "id": "booking_ee0a8d98c033979bcfa2fa9e858d7200@booking.com",
     "title": "Booking (Not Available)",
     "start": "2026-06-27T15:00",
@@ -107,30 +94,17 @@
     "id": "booking_067e36e0325e293e72e46999c7b66878@booking.com",
     "title": "Booking (Not Available)",
     "start": "2027-04-01T15:00",
-    "end": "2027-06-12T11:00",
-    "allDay": false,
-    "source": "booking",
-    "sourceName": "Booking.com",
-    "color": "#003580",
-    "description": "",
-    "rawStart": "2027-04-01T00:00:00.000Z",
-    "rawEnd": "2027-06-12T00:00:00.000Z"
-  },
-  {
-    "id": "booking_4ce3c201a5c835a0378cfc1115d2e21c@booking.com",
-    "title": "Booking (Not Available)",
-    "start": "2027-06-13T15:00",
     "end": "2027-12-12T11:00",
     "allDay": false,
     "source": "booking",
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
-    "rawStart": "2027-06-13T00:00:00.000Z",
+    "rawStart": "2027-04-01T00:00:00.000Z",
     "rawEnd": "2027-12-12T00:00:00.000Z"
   },
   {
-    "id": "official_62c7c1fa27339730acf418ee31c55565@seasky-apartments.com",
+    "id": "official_66971faf946b5ba55f8c533e0e0157cf@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41156",
     "start": "2026-06-07T15:00",
     "end": "2026-06-14T11:00",
@@ -143,7 +117,7 @@
     "rawEnd": "2026-06-14T00:00:00.000Z"
   },
   {
-    "id": "official_57cbe1dd5aab602640bd0027801e6752@seasky-apartments.com",
+    "id": "official_930d6f01864d9fa3b3a755d3ffd2444f@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41153",
     "start": "2026-05-31T15:00",
     "end": "2026-06-07T11:00",
@@ -156,7 +130,7 @@
     "rawEnd": "2026-06-07T00:00:00.000Z"
   },
   {
-    "id": "official_49f6c4e290a8c53fdb60840c83012236@seasky-apartments.com",
+    "id": "official_2758fae9f9cc15219406599f69d34c6e@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41150",
     "start": "2026-05-06T15:00",
     "end": "2026-05-10T11:00",
@@ -169,7 +143,7 @@
     "rawEnd": "2026-05-10T00:00:00.000Z"
   },
   {
-    "id": "official_b49e5e9ac1fdbd297caa172d98130541@seasky-apartments.com",
+    "id": "official_3d445360bcae37283c0830de7c62e8ba@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41148",
     "start": "2026-08-03T15:00",
     "end": "2026-08-07T11:00",
@@ -182,7 +156,7 @@
     "rawEnd": "2026-08-07T00:00:00.000Z"
   },
   {
-    "id": "official_6c233743ab4a1c59782556944511991e@seasky-apartments.com",
+    "id": "official_dfc0fa0ca74bee04e6ae5814a697bf21@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41146",
     "start": "2026-05-17T15:00",
     "end": "2026-05-21T11:00",
@@ -195,7 +169,7 @@
     "rawEnd": "2026-05-21T00:00:00.000Z"
   },
   {
-    "id": "official_8970e129d9235d547cecdce5aa1d669d@seasky-apartments.com",
+    "id": "official_1a06321bcf83865c2ca07c682f478f6d@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41144",
     "start": "2026-05-01T15:00",
     "end": "2026-05-06T11:00",
@@ -208,7 +182,7 @@
     "rawEnd": "2026-05-06T00:00:00.000Z"
   },
   {
-    "id": "official_c68dd5e57888541faf08e5472c77e463@seasky-apartments.com",
+    "id": "official_3a93d0d384012f7f364f29b43c7478f7@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41141",
     "start": "2026-04-19T15:00",
     "end": "2026-04-23T11:00",
@@ -221,7 +195,7 @@
     "rawEnd": "2026-04-23T00:00:00.000Z"
   },
   {
-    "id": "official_cb33b7159af15440d1d6903392e352fb@seasky-apartments.com",
+    "id": "official_0d705afc694b34a96801b12bedfa70bf@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41139",
     "start": "2026-04-17T15:00",
     "end": "2026-04-19T11:00",
@@ -234,7 +208,7 @@
     "rawEnd": "2026-04-19T00:00:00.000Z"
   },
   {
-    "id": "official_6c7e885720d50a117cca9c44d64de41d@seasky-apartments.com",
+    "id": "official_0cfee6618fda675e330b578a8be58bc5@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41136",
     "start": "2026-04-24T15:00",
     "end": "2026-04-26T11:00",
@@ -247,7 +221,7 @@
     "rawEnd": "2026-04-26T00:00:00.000Z"
   },
   {
-    "id": "official_adf5232d9bd02a1d7bb5f791b76100dd@seasky-apartments.com",
+    "id": "official_da8abb526b1635e8d28b2094e8f8014b@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41134",
     "start": "2026-04-15T15:00",
     "end": "2026-04-16T11:00",
@@ -260,7 +234,7 @@
     "rawEnd": "2026-04-16T00:00:00.000Z"
   },
   {
-    "id": "official_07c1cd08586dffdafdd84b10199fe47e@seasky-apartments.com",
+    "id": "official_6c7f99ade60b13e2eff162910eb91b7c@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 41131",
     "start": "2026-03-29T15:00",
     "end": "2026-03-30T11:00",
@@ -273,7 +247,7 @@
     "rawEnd": "2026-03-30T00:00:00.000Z"
   },
   {
-    "id": "official_c436d65074ec100470d9dafe8a63a4b7@seasky-apartments.com",
+    "id": "official_3caae07097fb4cc81375cc43d550b5cb@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 40644",
     "start": "2025-01-05T15:00",
     "end": "2025-01-07T11:00",
@@ -286,7 +260,7 @@
     "rawEnd": "2025-01-07T00:00:00.000Z"
   },
   {
-    "id": "official_65fc2afd62f96a323befbd1571f68f23@seasky-apartments.com",
+    "id": "official_54434d8fddfca377b506e6a955c77381@seasky-apartments.com",
     "title": "https://seasky-apartments.com/ booking no 40638",
     "start": "2024-11-18T15:00",
     "end": "2025-01-05T11:00",

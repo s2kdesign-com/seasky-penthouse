@@ -1,18 +1,5 @@
 [
   {
-    "id": "airbnb_7f662ec65913-39e27e67cb50a7fd32c2aaf92c0e1aea@airbnb.com",
-    "title": "Airbnb (Not available)",
-    "start": "2027-06-20T15:00",
-    "end": "2027-06-21T11:00",
-    "allDay": false,
-    "source": "airbnb",
-    "sourceName": "Airbnb",
-    "color": "#FF5A5F",
-    "description": "",
-    "rawStart": "2027-06-20T00:00:00.000Z",
-    "rawEnd": "2027-06-21T00:00:00.000Z"
-  },
-  {
     "id": "booking_2ece9a529fbe3fa233ad11ffed4d6204@booking.com",
     "title": "Booking (Not Available)",
     "start": "2026-06-19T15:00",

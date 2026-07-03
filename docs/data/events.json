@@ -68,26 +68,13 @@
     "id": "booking_067e36e0325e293e72e46999c7b66878@booking.com",
     "title": "Booking (Not Available)",
     "start": "2027-04-01T15:00",
-    "end": "2027-07-03T11:00",
+    "end": "2028-01-04T11:00",
     "allDay": false,
     "source": "booking",
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
     "rawStart": "2027-04-01T00:00:00.000Z",
-    "rawEnd": "2027-07-03T00:00:00.000Z"
-  },
-  {
-    "id": "booking_aea8a402b726772e07c396e1dd3bc389@booking.com",
-    "title": "Booking (Not Available)",
-    "start": "2027-07-04T15:00",
-    "end": "2028-01-03T11:00",
-    "allDay": false,
-    "source": "booking",
-    "sourceName": "Booking.com",
-    "color": "#003580",
-    "description": "",
-    "rawStart": "2027-07-04T00:00:00.000Z",
-    "rawEnd": "2028-01-03T00:00:00.000Z"
+    "rawEnd": "2028-01-04T00:00:00.000Z"
   }
 ]

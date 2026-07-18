@@ -1,11 +1,11 @@
 {
-  "lastSync": "2026-07-17T23:56:13.875Z",
+  "lastSync": "2026-07-18T03:14:34.706Z",
   "feeds": [
     {
       "id": "airbnb",
       "name": "Airbnb",
       "status": "ok",
-      "lastChecked": "2026-07-17T23:56:13.875Z",
+      "lastChecked": "2026-07-18T03:14:34.706Z",
       "error": null,
       "count": 4
     },
@@ -13,17 +13,17 @@
       "id": "booking",
       "name": "Booking.com",
       "status": "ok",
-      "lastChecked": "2026-07-17T23:56:13.875Z",
+      "lastChecked": "2026-07-18T03:14:34.706Z",
       "error": null,
       "count": 5
     },
     {
       "id": "official",
       "name": "Official Website",
-      "status": "ok",
-      "lastChecked": "2026-07-17T23:56:13.875Z",
-      "error": null,
-      "count": 15
+      "status": "error",
+      "lastChecked": "2026-07-18T03:14:34.706Z",
+      "error": "415 Unsupported Media Type",
+      "count": 0
     }
   ]
 }

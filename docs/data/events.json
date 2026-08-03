@@ -81,13 +81,13 @@
     "id": "booking_e6911b1135f38e0a8ec7ede41fde0eb5@booking.com",
     "title": "Booking (Not Available)",
     "start": "2027-07-13T15:00",
-    "end": "2028-02-03T11:00",
+    "end": "2028-02-04T11:00",
     "allDay": false,
     "source": "booking",
     "sourceName": "Booking.com",
     "color": "#003580",
     "description": "",
     "rawStart": "2027-07-13T00:00:00.000Z",
-    "rawEnd": "2028-02-03T00:00:00.000Z"
+    "rawEnd": "2028-02-04T00:00:00.000Z"
   }
 ]

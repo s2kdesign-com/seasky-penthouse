@@ -1,18 +1,5 @@
 [
   {
-    "id": "airbnb_7f662ec65913-cf60422aa0bf1b0354dfa90bd3dae09b@airbnb.com",
-    "title": "Airbnb (Not available)",
-    "start": "2026-08-01T15:00",
-    "end": "2026-08-02T11:00",
-    "allDay": false,
-    "source": "airbnb",
-    "sourceName": "Airbnb",
-    "color": "#FF5A5F",
-    "description": "",
-    "rawStart": "2026-08-01T00:00:00.000Z",
-    "rawEnd": "2026-08-02T00:00:00.000Z"
-  },
-  {
     "id": "airbnb_7f662ec65913-62494afd1a4895e2be1120874c058412@airbnb.com",
     "title": "Airbnb (Not available)",
     "start": "2026-08-03T15:00",
@@ -42,14 +29,14 @@
     "id": "airbnb_7f662ec65913-9cb97600a637ae28de256b7e0feb4414@airbnb.com",
     "title": "Airbnb (Not available)",
     "start": "2027-05-17T15:00",
-    "end": "2027-08-04T11:00",
+    "end": "2027-08-05T11:00",
     "allDay": false,
     "source": "airbnb",
     "sourceName": "Airbnb",
     "color": "#FF5A5F",
     "description": "",
     "rawStart": "2027-05-17T00:00:00.000Z",
-    "rawEnd": "2027-08-04T00:00:00.000Z"
+    "rawEnd": "2027-08-05T00:00:00.000Z"
   },
   {
     "id": "booking_1745c9f756852eaa1419f0a5da87f9ae@booking.com",

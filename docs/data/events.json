@@ -29,14 +29,14 @@
     "id": "airbnb_7f662ec65913-79daaa4e13a8ab32f87ba217bf3f365a@airbnb.com",
     "title": "Airbnb (Not available)",
     "start": "2027-02-01T15:00",
-    "end": "2027-11-27T11:00",
+    "end": "2027-11-28T11:00",
     "allDay": false,
     "source": "airbnb",
     "sourceName": "Airbnb",
     "color": "#FF5A5F",
     "description": "",
     "rawStart": "2027-02-01T00:00:00.000Z",
-    "rawEnd": "2027-11-27T00:00:00.000Z"
+    "rawEnd": "2027-11-28T00:00:00.000Z"
   },
   {
     "id": "booking_81b33ff9e4e35643973055d60efb393c@booking.com",
